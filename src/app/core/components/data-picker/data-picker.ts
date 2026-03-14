@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { HlmDatePickerImports } from '@spartan-ng/helm/date-picker';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 
@@ -6,7 +6,8 @@ import { HlmLabelImports } from '@spartan-ng/helm/label';
 	selector: 'app-data-picker',
 	imports: [HlmDatePickerImports, HlmLabelImports],
 	templateUrl: './data-picker.html',
-	styleUrls: ['./data-picker.css']
+	styleUrl: './data-picker.css',
+	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DataPicker {
 	/** The minimum date */
