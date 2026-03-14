@@ -5,7 +5,7 @@ import { Member } from '../../models/Member';
 
 @Component({
   selector: 'app-home',
-  imports: [DataPicker, Membertable],
+  imports: [Membertable],
   templateUrl: './home.html',
   styleUrls: ['./home.css'],
 })

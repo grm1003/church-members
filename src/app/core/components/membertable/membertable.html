@@ -1,30 +1,55 @@
 <!-- Tabela  -->
  <div class="flex flex-col items-center justify-center h-full gap-4">
-    <app-data-picker></app-data-picker>
-    <div title="{{tableName}}">
-    <div class="table-header">
-      <div class="top-bar">
-        <h3 class="table-title">{{tableName}}</h3>
-      </div>
+    <div class="flex">
+        <h2 class="text-2xl font-bold mb-4">{{ tableName }}</h2>
+        <app-data-picker></app-data-picker>
+        <div class="h-4"></div>
+        <button (click)="rerender()" class="border p-2">Rerender</button>
+        </div>
     </div>
-    <div class="tabela-horarios">
-      <table>
-        <thead>
-          <tr>
-            <th class="border-right text-center" scope="col">Nome</th>
-            <th class="border-right text-center" scope="col">Email</th>
-            <th class="border-right text-center" scope="col">Aniversario</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of tableData">
-            <td class="text-center">{{ row.nome }}</td>
-            <td class="text-center">{{ row.email }}</td>
-            <td class="text-center">{{ row.aniversario }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+
+        <div class="p-2">
+        <table>
+            <thead>
+            @for (headerGroup of table.getHeaderGroups(); track headerGroup.id) {
+                <tr>
+                @for (header of headerGroup.headers; track header.id) {
+                    @if (!header.isPlaceholder) {
+                    <th>
+                        <ng-container
+                        *flexRender="
+                            header.column.columnDef.header;
+                            props: header.getContext();
+                            let header
+                        "
+                        >
+                        <div [innerHTML]="header"></div>
+                        </ng-container>
+                    </th>
+                    }
+                }
+                </tr>
+            }
+            </thead>
+            <tbody>
+            @for (row of table.getRowModel().rows; track row.id) {
+                <tr>
+                @for (cell of row.getVisibleCells(); track cell.id) {
+                    <td>
+                    <ng-container
+                        *flexRender="
+                        cell.column.columnDef.cell;
+                        props: cell.getContext();
+                        let cell
+                        "
+                    >
+                        <div [innerHTML]="cell"></div>
+                    </ng-container>
+                    </td>
+                }
+                </tr>
+            }
+            </tbody>
+        </table>
  </div>
 
