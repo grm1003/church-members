@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, signal, OnInit } from '@angular/core';
 import { Member } from '../../models/Member';
 import { DataPicker } from "../data-picker/data-picker";
 import {
@@ -37,7 +37,7 @@ const defaultColumns: ColumnDef<Member>[] = [
   templateUrl: './membertable.html',
   styleUrl: './membertable.css',
 })
-export class Membertable {
+export class Membertable implements OnInit {
   @Input() tableName: string = 'Tabela';
   @Input() tableData: Member[] = [];
 
@@ -52,5 +52,9 @@ export class Membertable {
 
   rerender() {
     this.data.set([...this.tableData.sort(() => -1)])
+  }
+
+  ngOnInit(): void {
+    this.rerender()
   }
 }
