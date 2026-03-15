@@ -8,14 +8,14 @@
         </div>
     </div>
 
-        <div class="p-2">
-        <table>
-            <thead>
+        <div class="w-full overflow-y-auto rounded-lg border border-[var(--card)] shadow-sm m-3">
+        <table class="w-full min-w-full divide-y divide-[var(--card)] table-fixed">
+            <thead class="bg-[var(--item)]">
             @for (headerGroup of table.getHeaderGroups(); track headerGroup.id) {
-                <tr>
+                <tr class="border-b border-[var(--card)]">
                 @for (header of headerGroup.headers; track header.id) {
                     @if (!header.isPlaceholder) {
-                    <th>
+                    <th class="text-center px-4 py-2 font-semibold border-b border-[var(--card)] text-[var(--sky-50)]">
                         <ng-container
                         *flexRender="
                             header.column.columnDef.header;
@@ -31,11 +31,11 @@
                 </tr>
             }
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-[var(--card)]">
             @for (row of table.getRowModel().rows; track row.id) {
-                <tr>
+                <tr class="border-b border-[var(--card)] last:border-b-0">
                 @for (cell of row.getVisibleCells(); track cell.id) {
-                    <td>
+                    <td class="text-center px-4 py-2 align-middle">
                     <ng-container
                         *flexRender="
                         cell.column.columnDef.cell;
