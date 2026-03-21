@@ -24,6 +24,7 @@
     "@tanstack/angular-table": "^8.21.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "ng-zorro-antd": "^21.2.0",
     "rxjs": "~7.8.0",
     "tailwind-merge": "^3.5.0",
     "tslib": "^2.3.0"
@@ -35,6 +36,7 @@
     "@spartan-ng/cli": "^0.0.1-alpha.651",
     "@tailwindcss/postcss": "^4.1.12",
     "jsdom": "^28.0.0",
+    "less": "^4.2.0",
     "postcss": "^8.5.3",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.1.12",

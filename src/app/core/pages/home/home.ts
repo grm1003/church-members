@@ -1,13 +1,10 @@
 import { Component } from '@angular/core';
-import { DataPicker } from '../../components/data-picker/data-picker';
 import { Membertable } from "../../components/membertable/membertable";
 import { Member } from '../../models/Member';
-import { HeaderComponent } from "../../shared/header/header.component";
-import { FooterComponent } from "../../shared/footer/footer.component";
 
 @Component({
   selector: 'app-home',
-  imports: [Membertable, HeaderComponent, FooterComponent],
+  imports: [Membertable],
   templateUrl: './home.html',
   styleUrls: ['./home.css'],
 })
