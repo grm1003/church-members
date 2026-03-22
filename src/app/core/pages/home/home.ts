@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Membertable } from "../../components/membertable/membertable";
 import { Member } from '../../models/Member';
+import { GetMembers } from '../../services/get-members';
 
 @Component({
   selector: 'app-home',
@@ -9,8 +11,16 @@ import { Member } from '../../models/Member';
   styleUrls: ['./home.css'],
 })
 export class Home {
-  tableData: Member[] = [
-    { nome: 'John Doe', email: 'john@example.com', aniversario: '1990-01-01' },
-    { nome: 'Jane Smith', email: 'jane@example.com', aniversario: '1992-05-15' }
-  ];
+  private readonly membersService = inject(GetMembers);
+  private readonly destroyRef = inject(DestroyRef);
+
+  tableData: Member[] = [];
+
+  constructor() {
+    this.membersService.members$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((members) => {
+        this.tableData = members;
+      });
+  }
 }
