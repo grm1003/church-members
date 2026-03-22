@@ -3,39 +3,65 @@
   <!-- Header -->
   <div class="flex items-center gap-4 w-full px-4">
     <h2 class="text-2xl font-bold">{{ tableName }}</h2>
-    <app-data-picker></app-data-picker>
+    <app-data-picker (dateSelected)="onDateSelected($event)"></app-data-picker>
     <button 
       nz-button 
       nzType="default"
-      (click)="rerender()"
+      (click)="resetFilters()"
       class="ml-auto"
     >
       <i nz-icon nzType="reload" nzTheme="outline"></i>
-      Refresh
+      Limpar Filtros
     </button>
   </div>
 
   <!-- Table -->
   <div class="w-full overflow-x-auto px-4">
+    <div class="rounded-lg border border-[#E6EEF6] shadow-[0_1px_4px_rgba(0,21,41,0.08)] bg-white">
     <nz-table 
-      #table 
-      [nzData]="displayData"
+      #filterTable
+      [nzData]="filteredData"
       [nzLoading]="isLoading"
       nzSize="small"
       [nzScroll]="{ x: '100%' }"
+      nzTableLayout="fixed"
       class="w-full"
     >
-      <!-- Nome Column -->
-      <thead>
+      <!-- Header com Sorting e Filtering -->
+      <thead class="bg-[#001529] text-white">
         <tr>
-          <th nzWidth="25%">Nome</th>
-          <th nzWidth="35%">Email</th>
-          <th nzWidth="20%">Aniversário</th>
+          <th 
+            nzWidth="25%" 
+            [nzSortOrder]="nomeColumn.sortOrder"
+            [nzSortFn]="nomeColumn.sortFn"
+            [nzSortDirections]="nomeColumn.sortDirections"
+            class="font-semibold"
+          >
+            Nome
+          </th>
+          <th 
+            nzWidth="35%" 
+            [nzSortOrder]="emailColumn.sortOrder"
+            [nzSortFn]="emailColumn.sortFn"
+            [nzSortDirections]="emailColumn.sortDirections"
+            class="font-semibold"
+          >
+            Email
+          </th>
+          <th 
+            nzWidth="20%" 
+            [nzSortOrder]="aniversarioColumn.sortOrder"
+            [nzSortFn]="aniversarioColumn.sortFn"
+            [nzSortDirections]="aniversarioColumn.sortDirections"
+            class="font-semibold"
+          >
+            Aniversário
+          </th>
           <th nzWidth="20%">Ações</th>
         </tr>
       </thead>
       <tbody>
-        @for (member of displayData; track member.email) {
+        @for (member of filterTable.data; track member.email) {
           <tr>
             <td>{{ member.nome }}</td>
             <td>
@@ -43,17 +69,15 @@
             </td>
             <td>{{ member.aniversario | date: 'dd/MM/yyyy' }}</td>
             <td>
-              <button nz-button nzType="primary" nzSize="small" class="mr-2">
-                Editar
-              </button>
-              <button nz-button nzDanger nzSize="small">
-                Remover
-              </button>
+                <a class="text-blue-600 hover:text-blue-800 cursor-pointer">Família 一 {{member.nome}}</a>
+                <nz-divider nzType="vertical"></nz-divider>
+                <a class="text-red-600 hover:text-red-800 cursor-pointer">Delete</a>
             </td>
           </tr>
         }
       </tbody>
     </nz-table>
+    </div>
   </div>
 </div>
 

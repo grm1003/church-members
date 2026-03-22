@@ -82,3 +82,42 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Override NG-ZORRO filter/dropdown active and hover styles to improve contrast */
+/* Make selected/active dropdown items light background with dark text */
+.ant-dropdown-menu-item-active,
+.ant-dropdown-menu-item-selected,
+.ant-dropdown-menu-item-active > a,
+.ant-dropdown-menu-item-selected > a {
+  background-color: #f3f6f9 !important;
+  color: #001529 !important;
+}
+
+/* Slightly darker on hover for active items */
+.ant-dropdown-menu-item-active:hover,
+.ant-dropdown-menu-item-selected:hover {
+  background-color: #e6eef6 !important;
+  color: #001529 !important;
+}
+
+/* Table header filter trigger: ensure readable text when active/hover */
+.ant-table-thead .ant-table-filter-trigger,
+.ant-table-thead .ant-table-filter-trigger:hover,
+.ant-table-thead .ant-table-filter-trigger-active {
+  color: #001529 !important;
+}
+
+/* Keep table header cells white text when using our custom dark header, but make
+   the filter trigger itself dark when hovered/active so it remains legible */
+.ant-table-thead > tr > th {
+  background-color: #001529 !important;
+  color: #ffffff !important;
+}
+
+/* Ensure table container shadow/border consistency */
+.ant-table-wrapper .ant-table {
+  border: 1px solid #E6EEF6 !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 1px 4px rgba(0,21,41,0.08) !important;
+  background: #ffffff !important;
+}
