@@ -37,6 +37,23 @@
       </nz-form-control>
     </nz-form-item>
 
+    <nz-form-item>
+      <nz-form-label>Familia</nz-form-label>
+      <nz-form-control>
+        <nz-select
+          formControlName="familia"
+          nzMode="multiple"
+          nzPlaceHolder="Digite para buscar e selecionar familiares"
+          nzShowSearch
+          class="w-full"
+        >
+          @for (name of familyOptions; track name) {
+            <nz-option [nzLabel]="name" [nzValue]="name"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+
     <nz-form-item class="!mb-0 pt-2">
       <nz-form-control>
         <button nz-button nzType="primary" type="submit" class="h-10 min-w-44 rounded-md px-6">

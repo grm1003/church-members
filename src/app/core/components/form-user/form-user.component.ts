@@ -6,12 +6,13 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { Member } from '../../models/Member';
 import { GetMembers } from '../../services/get-members';
 
 @Component({
   selector: 'app-form-user',
-  imports: [ReactiveFormsModule, NzButtonModule, NzDatePickerModule, NzFormModule, NzInputModule],
+  imports: [ReactiveFormsModule, NzButtonModule, NzDatePickerModule, NzFormModule, NzInputModule, NzSelectModule],
   templateUrl: './form-user.component.html',
   styleUrl: './form-user.component.css',
 })
@@ -24,7 +25,10 @@ export class FormUser {
     nome: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(3)]),
     email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
     aniversario: this.fb.control<Date | null>(null, [Validators.required]),
+    familia: this.fb.nonNullable.control<string[]>([]),
   });
+
+  familyOptions: string[] = [];
 
   // Mensagens automaticas para erros de validacao.
   autoTips: Record<string, Record<string, string>> = {
@@ -40,6 +44,10 @@ export class FormUser {
 
   readonly disableFutureDates = (current: Date): boolean => current.getTime() > Date.now();
 
+  constructor() {
+    this.familyOptions = this.membersService.getMembers().map((member) => member.nome);
+  }
+
   submitForm(): void {
     if (this.validateForm.invalid) {
       Object.values(this.validateForm.controls).forEach((control) => {
@@ -52,10 +60,15 @@ export class FormUser {
     }
 
     const formValue = this.validateForm.getRawValue();
+    const normalizedFamily = (formValue.familia ?? [])
+      .map((name) => name.trim())
+      .filter((name) => name.length > 0);
+
     const payload: Member = {
       nome: formValue.nome.trim(),
       email: formValue.email.trim(),
       aniversario: this.formatDate(formValue.aniversario as Date),
+      familia: normalizedFamily,
     };
 
     this.membersService.addMember(payload);

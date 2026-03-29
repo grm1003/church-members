@@ -1,0 +1,23 @@
+<button type="button" (click)="showModal()" class="text-blue-600 hover:text-blue-800 cursor-pointer bg-transparent p-0 border-0">
+  {{ triggerLabel }}
+</button>
+<nz-modal
+  [(nzVisible)]="isVisible"
+  [nzTitle]="title"
+  (nzOnCancel)="handleCancel()"
+  (nzOnOk)="handleOk()"
+>
+  <ng-container *nzModalContent>
+    <div class="max-h-[65vh] w-full max-w-full overflow-x-auto overflow-y-auto pr-1">
+      @if (listData.length === 0) {
+        <p class="text-sm text-slate-500">Sem familiares vinculados.</p>
+      } @else {
+        <div class="min-w-max space-y-2">
+          @for (parent of listData; track parent) {
+            <p class="whitespace-nowrap text-sm text-slate-700">{{ parent }}</p>
+          }
+        </div>
+      }
+    </div>
+  </ng-container>
+</nz-modal>

@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzTableModule, NzTableSortFn, NzTableSortOrder } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -16,7 +18,7 @@ interface ColumnItem {
 
 @Component({
   selector: 'app-member-table',
-  imports: [CommonModule, DataPicker, NzTableModule, NzButtonModule, NzIconModule, NzDividerModule],
+  imports: [CommonModule, RouterLink, DataPicker, NzTableModule, NzButtonModule, NzIconModule, NzDividerModule, NzModalModule],
   standalone: true,
   templateUrl: './membertable.html',
   styleUrl: './membertable.css',
@@ -26,6 +28,9 @@ export class Membertable {
   @Input() tableData: Member[] = [];
 
   isLoading = false;
+  isFamilyModalVisible = false;
+  familyModalTitle = 'Familia do membro';
+  selectedFamily: string[] = [];
   selectedDate: Date | null = null;
   filteredData: Member[] = [];
   readonly nomeColumn: ColumnItem = {
@@ -146,5 +151,15 @@ export class Membertable {
   resetFilters(): void {
     this.clearDateFilter();
     this.resetSort();
+  }
+
+  openFamilyModal(member: Member): void {
+    this.familyModalTitle = `Familia de ${member.nome}`;
+    this.selectedFamily = [...member.familia];
+    this.isFamilyModalVisible = true;
+  }
+
+  closeFamilyModal(): void {
+    this.isFamilyModalVisible = false;
   }
 }
