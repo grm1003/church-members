@@ -1,59 +1,124 @@
-# ChurchMembers
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.2.
+# Church Members (MVP)
 
-## Development server
+Aplicação Angular para controle inicial de membros da igreja, focada em validação funcional com uso interno.
 
-To start a local development server, run:
+## Objetivo desta versão
 
+Esta primeira versão foi construída para:
+- cadastrar membros
+- visualizar lista com ordenação e filtro por data
+- visualizar familiares em modal
+- remover membro com confirmação
+
+Sem autenticação e sem backend persistente nesta fase, para validar fluxo e usabilidade rapidamente.
+
+## Stack atual
+
+- Angular 21
+- TypeScript
+- TailwindCSS
+- NG-ZORRO (componentes de UI)
+- RxJS (`BehaviorSubject`) para estado em memória
+
+## Funcionalidades implementadas
+
+### 1. Cadastro de membros
+Rota: `/members/create`
+
+Campos:
+- Nome completo
+- E-mail
+- Data de nascimento
+- Família (select com busca e seleção múltipla)
+
+Regras:
+- Nome obrigatório (mínimo 3 caracteres)
+- E-mail válido
+- Data obrigatória
+- Ao selecionar familiares no cadastro, o vínculo é atualizado dos dois lados
+
+### 2. Tabela de membros
+Rota principal: `/home`
+
+Recursos:
+- Ordenação por nome, e-mail e aniversário
+- Filtro por data de referência
+- Reset de filtros
+- Ação de família por linha:
+	- abre modal com a lista de familiares do membro
+	- modal com controle de overflow vertical e horizontal
+
+### 3. Remoção de membros
+Rota: `/members/delete`
+
+Fluxo:
+- Pode receber nome por query param ao clicar em `Delete` na tabela
+- Exibe confirmação antes de remover
+- Remove apenas o membro selecionado
+- Também remove o nome dele da família dos outros membros
+
+## Rotas atuais
+
+- `/home`
+- `/members/create`
+- `/members/delete`
+
+## Estado atual de dados
+
+Atualmente os dados ficam em memória no serviço `GetMembers`:
+- não persistem após reload da página
+- ideal para MVP de validação com usuário final
+
+## Como rodar localmente
+
+Pré-requisito:
+- Node.js + npm
+
+Instalação:
 ```bash
-ng serve
+npm install
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
+Execução:
 ```bash
-ng generate component component-name
+npm run start
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+A aplicação sobe em:
+- `http://localhost:4200`
+
+## Scripts disponíveis
 
 ```bash
-ng generate --help
+npm run start
+npm run build
+npm run test
+npm run watch
 ```
 
-## Building
+## Limitações desta versão (MVP)
 
-To build the project run:
+- Sem autenticação/autorização
+- Sem backend dedicado
+- Sem banco persistente
+- Sem auditoria de alterações
 
-```bash
-ng build
-```
+## Próxima evolução 
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Opção A:
+- Supabase (Postgres + Auth + RLS)
 
-## Running unit tests
+Opção B (perfil backend):
+- API Java (Spring Boot) + banco relacional
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Recomendado para próxima etapa:
+1. adicionar `id` único para membros
+2. persistir dados em banco
+3. autenticação básica (usuário pastor)
+4. controle de acesso por rota/operação
+5. logs/auditoria mínima de alterações
 
-```bash
-ng test
-```
+## Status
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+MVP funcional para demonstração e coleta de feedback.
