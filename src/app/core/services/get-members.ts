@@ -6,13 +6,19 @@ import { Member } from '../models/Member';
   providedIn: 'root',
 })
 export class GetMembers {
+  private readonly STORAGE_KEY = 'church-members-data';
+
   private readonly initialMembers: Member[] = [
     { nome: 'John Doe', email: 'john@example.com', aniversario: '1990-01-01', familia: ['Jane Smith'] },
     { nome: 'Jane Smith', email: 'jane@example.com', aniversario: '1992-05-15', familia: ['John Doe'] },
   ];
 
-  private readonly membersSubject = new BehaviorSubject<Member[]>([...this.initialMembers]);
+  private readonly membersSubject = new BehaviorSubject<Member[]>([]);
   readonly members$ = this.membersSubject.asObservable();
+
+  constructor() {
+    this.loadFromStorage();
+  }
 
   getMembers(): Member[] {
     return [...this.membersSubject.value];
@@ -54,7 +60,9 @@ export class GetMembers {
       familia: uniqueFamily,
     };
 
-    this.membersSubject.next([...updatedMembers, newMember]);
+    const allMembers = [...updatedMembers, newMember];
+    this.membersSubject.next(allMembers);
+    this.saveToStorage(allMembers);
   }
 
   removeMemberByName(name: string): boolean {
@@ -76,6 +84,32 @@ export class GetMembers {
       }));
 
     this.membersSubject.next(filteredMembers);
+    this.saveToStorage(filteredMembers);
     return true;
+  }
+
+  private saveToStorage(members: Member[]): void {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(members));
+    } catch (error) {
+      console.warn('Erro ao salvar dados no localStorage:', error);
+    }
+  }
+
+  private loadFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        const members = JSON.parse(stored);
+        this.membersSubject.next(members);
+      } else {
+        this.membersSubject.next([...this.initialMembers]);
+        this.saveToStorage(this.initialMembers);
+      }
+    } catch (error) {
+      console.warn('Erro ao carregar dados do localStorage:', error);
+      this.membersSubject.next([...this.initialMembers]);
+      this.saveToStorage(this.initialMembers);
+    }
   }
 }
