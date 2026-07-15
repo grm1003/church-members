@@ -7,7 +7,8 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { Member } from '../../models/Member';
+import { Familia, Member, MemberSaveDto, RelacaoFamiliaOption } from '../../models/Member';
+import { FamiliasApiService } from '../../services/familias-api.service';
 import { GetMembers } from '../../services/get-members';
 
 @Component({
@@ -19,16 +20,19 @@ import { GetMembers } from '../../services/get-members';
 export class FormUser {
   private fb = inject(FormBuilder);
   private membersService = inject(GetMembers);
+  private familiasService = inject(FamiliasApiService);
   private router = inject(Router);
 
   validateForm = this.fb.group({
     nome: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(3)]),
     email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
     aniversario: this.fb.control<Date | null>(null, [Validators.required]),
-    familia: this.fb.nonNullable.control<string[]>([]),
+    familiaId: this.fb.nonNullable.control<number[]>([]),
+    tipoRelacao: this.fb.nonNullable.control<Member['tipoRelacao']>('OUTRO'),
   });
 
-  familyOptions: string[] = [];
+  familyOptions: Familia[] = [];
+  relationOptions: RelacaoFamiliaOption[] = [];
 
   // Mensagens automaticas para erros de validacao.
   autoTips: Record<string, Record<string, string>> = {
@@ -45,7 +49,19 @@ export class FormUser {
   readonly disableFutureDates = (current: Date): boolean => current.getTime() > Date.now();
 
   constructor() {
-    this.familyOptions = this.membersService.getMembers().map((member) => member.nome);
+    this.familiasService.listFamilias().subscribe({
+      next: (familias) => {
+        this.familyOptions = familias;
+      },
+      error: (error: unknown) => console.warn('Erro ao carregar familias:', error),
+    });
+
+    this.familiasService.listRelacoes().subscribe({
+      next: (relacoes) => {
+        this.relationOptions = relacoes;
+      },
+      error: (error: unknown) => console.warn('Erro ao carregar relacoes:', error),
+    });
   }
 
   submitForm(): void {
@@ -60,20 +76,18 @@ export class FormUser {
     }
 
     const formValue = this.validateForm.getRawValue();
-    const normalizedFamily = (formValue.familia ?? [])
-      .map((name) => name.trim())
-      .filter((name) => name.length > 0);
-
-    const payload: Member = {
+    const payload: MemberSaveDto = {
       nome: formValue.nome.trim(),
       email: formValue.email.trim(),
-      aniversario: this.formatDate(formValue.aniversario as Date),
-      familia: normalizedFamily,
+      data: this.formatDate(formValue.aniversario as Date),
+      familiaId: formValue.familiaId ?? [],
+      tipoRelacao: formValue.tipoRelacao,
     };
 
     this.membersService.addMember(payload);
     console.log('Membro cadastrado:', payload);
     this.validateForm.reset();
+    this.validateForm.patchValue({ tipoRelacao: 'OUTRO', familiaId: [] });
     this.router.navigateByUrl('/home');
   }
 
