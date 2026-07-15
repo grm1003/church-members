@@ -41,14 +41,25 @@
       <nz-form-label>Familia</nz-form-label>
       <nz-form-control>
         <nz-select
-          formControlName="familia"
+          formControlName="familiaId"
           nzMode="multiple"
           nzPlaceHolder="Digite para buscar e selecionar familiares"
           nzShowSearch
           class="w-full"
         >
-          @for (name of familyOptions; track name) {
-            <nz-option [nzLabel]="name" [nzValue]="name"></nz-option>
+          @for (family of familyOptions; track family.id) {
+            <nz-option [nzLabel]="family.nome" [nzValue]="family.id"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label nzRequired>Relação familiar</nz-form-label>
+      <nz-form-control>
+        <nz-select formControlName="tipoRelacao" nzPlaceHolder="Selecione a relação" class="w-full">
+          @for (relation of relationOptions; track relation.valor) {
+            <nz-option [nzLabel]="relation.descricao" [nzValue]="relation.valor"></nz-option>
           }
         </nz-select>
       </nz-form-control>
