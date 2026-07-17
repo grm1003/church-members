@@ -38,30 +38,47 @@
     </nz-form-item>
 
     <nz-form-item>
-      <nz-form-label>Familia</nz-form-label>
+      <nz-form-label nzRequired>Famílias e relação</nz-form-label>
       <nz-form-control>
-        <nz-select
-          formControlName="familiaId"
-          nzMode="multiple"
-          nzPlaceHolder="Digite para buscar e selecionar familiares"
-          nzShowSearch
-          class="w-full"
-        >
-          @for (family of familyOptions; track family.id) {
-            <nz-option [nzLabel]="family.nome" [nzValue]="family.id"></nz-option>
-          }
-        </nz-select>
-      </nz-form-control>
-    </nz-form-item>
+        <div formArrayName="familiasRelacao" class="space-y-3">
+          @for (familiaGroup of familiaRelacaoControls; track $index; let i = $index) {
+            <div [formGroupName]="i" class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <div class="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                <div>
+                  <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Família</p>
+                  <nz-select formControlName="familiaId" nzPlaceHolder="Selecione a família" nzShowSearch class="w-full">
+                    @for (family of familyOptions; track family.id) {
+                      <nz-option [nzDisabled]="isFamilySelected(family.id, i)" [nzLabel]="family.nome" [nzValue]="family.id"></nz-option>
+                    }
+                  </nz-select>
+                </div>
 
-    <nz-form-item>
-      <nz-form-label nzRequired>Relação familiar</nz-form-label>
-      <nz-form-control>
-        <nz-select formControlName="tipoRelacao" nzPlaceHolder="Selecione a relação" class="w-full">
-          @for (relation of relationOptions; track relation.valor) {
-            <nz-option [nzLabel]="relation.descricao" [nzValue]="relation.valor"></nz-option>
+                <div>
+                  <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Relação nessa família</p>
+                  <nz-select formControlName="tipoRelacao" nzPlaceHolder="Selecione a relação" class="w-full">
+                    @for (relation of relationOptions; track relation.valor) {
+                      <nz-option [nzLabel]="relation.descricao" [nzValue]="relation.valor"></nz-option>
+                    }
+                  </nz-select>
+                </div>
+
+                <button
+                  type="button"
+                  nz-button
+                  nzType="default"
+                  class="min-w-28"
+                  (click)="removeFamiliaRelacao(i)"
+                >
+                  Remover
+                </button>
+              </div>
+            </div>
           }
-        </nz-select>
+        </div>
+
+        <button type="button" nz-button nzType="dashed" class="mt-3 w-full" (click)="addFamiliaRelacao()">
+          Adicionar família
+        </button>
       </nz-form-control>
     </nz-form-item>
 

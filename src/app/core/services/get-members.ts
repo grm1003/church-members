@@ -19,13 +19,12 @@ export class GetMembers {
     return [...this.membersSubject.value];
   }
 
-  addMember(member: Member | MemberSaveDto): void {
+  addMember(member: MemberSaveDto): void {
     const payload: MemberSaveDto = {
       nome: member.nome.trim(),
       email: member.email.trim(),
       data: member.data.trim(),
-      familiaId: [...new Set(member.familiaId ?? [])],
-      tipoRelacao: member.tipoRelacao ?? 'OUTRO',
+      tipoRelacao: member.tipoRelacao
     };
 
     this.membersApi.createMember(payload).subscribe({
