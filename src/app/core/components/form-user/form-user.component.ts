@@ -1,11 +1,14 @@
-import { Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
+import { CommonModule } from '@angular/common';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { Familia, Member, MemberSaveDto, RelacaoFamiliaOption } from '../../models/Member';
 import { FamiliasApiService } from '../../services/familias-api.service';
@@ -13,15 +16,27 @@ import { GetMembers } from '../../services/get-members';
 
 @Component({
   selector: 'app-form-user',
-  imports: [ReactiveFormsModule, NzButtonModule, NzDatePickerModule, NzFormModule, NzInputModule, NzSelectModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NzButtonModule,
+    NzDatePickerModule,
+    NzFormModule,
+    NzInputModule,
+    NzSelectModule,
+    NzIconModule,
+  ],
   templateUrl: './form-user.component.html',
   styleUrl: './form-user.component.css',
 })
-export class FormUser {
+export class FormUser implements OnInit {
   private fb = inject(FormBuilder);
   private membersService = inject(GetMembers);
   private familiasService = inject(FamiliasApiService);
+  private message = inject(NzMessageService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   validateForm = this.fb.group({
     nome: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(3)]),
@@ -33,6 +48,7 @@ export class FormUser {
 
   familyOptions: Familia[] = [];
   relationOptions: RelacaoFamiliaOption[] = [];
+  isSubmitting = false;
 
   // Mensagens automaticas para erros de validacao.
   autoTips: Record<string, Record<string, string>> = {
@@ -48,19 +64,34 @@ export class FormUser {
 
   readonly disableFutureDates = (current: Date): boolean => current.getTime() > Date.now();
 
-  constructor() {
+  ngOnInit(): void {
+    this.loadFamilies();
+    this.loadRelations();
+  }
+
+  loadFamilies(): void {
     this.familiasService.listFamilias().subscribe({
       next: (familias) => {
         this.familyOptions = familias;
+        this.cdr.markForCheck();
       },
-      error: (error: unknown) => console.warn('Erro ao carregar familias:', error),
+      error: (error: unknown) => {
+        console.warn('Erro ao carregar familias:', error);
+        this.cdr.markForCheck();
+      },
     });
+  }
 
+  loadRelations(): void {
     this.familiasService.listRelacoes().subscribe({
       next: (relacoes) => {
         this.relationOptions = relacoes;
+        this.cdr.markForCheck();
       },
-      error: (error: unknown) => console.warn('Erro ao carregar relacoes:', error),
+      error: (error: unknown) => {
+        console.warn('Erro ao carregar relacoes:', error);
+        this.cdr.markForCheck();
+      },
     });
   }
 
@@ -76,19 +107,40 @@ export class FormUser {
     }
 
     const formValue = this.validateForm.getRawValue();
+    const familiaIds: number[] = formValue.familiaId ?? [];
+    const tipoRelacao = formValue.tipoRelacao || 'OUTRO';
+
+    const relacoesList = familiaIds.map((id) => ({
+      familiaId: id,
+      tipoRelacao,
+    }));
+
     const payload: MemberSaveDto = {
       nome: formValue.nome.trim(),
       email: formValue.email.trim(),
       data: this.formatDate(formValue.aniversario as Date),
-      familiaId: formValue.familiaId ?? [],
-      tipoRelacao: formValue.tipoRelacao,
+      tipoRelacao: relacoesList,
     };
 
-    this.membersService.addMember(payload);
-    console.log('Membro cadastrado:', payload);
-    this.validateForm.reset();
-    this.validateForm.patchValue({ tipoRelacao: 'OUTRO', familiaId: [] });
-    this.router.navigateByUrl('/home');
+    this.isSubmitting = true;
+    this.cdr.markForCheck();
+
+    this.membersService.addMember(payload).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.message.success(`Membro "${payload.nome}" cadastrado com sucesso!`);
+        this.validateForm.reset();
+        this.validateForm.patchValue({ tipoRelacao: 'OUTRO', familiaId: [] });
+        this.cdr.markForCheck();
+        this.router.navigateByUrl('/home');
+      },
+      error: (error: unknown) => {
+        this.isSubmitting = false;
+        this.message.error('Erro ao cadastrar membro. Verifique os dados e tente novamente.');
+        this.cdr.markForCheck();
+        console.error('Erro ao cadastrar membro:', error);
+      },
+    });
   }
 
   private formatDate(date: Date): string {
@@ -98,3 +150,4 @@ export class FormUser {
     return `${year}-${month}-${day}`;
   }
 }
+

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
-import { Familia, Member, RelacaoFamiliaOption } from '../models/Member';
+import { Familia, MemberRelacao, RelacaoFamiliaOption } from '../models/Member';
 
 @Injectable({
   providedIn: 'root',
@@ -19,8 +19,8 @@ export class FamiliasApiService {
     return this.http.get<RelacaoFamiliaOption[]>(`${this.baseUrl}/familias/relacoes`);
   }
 
-  listFamiliaMembers(familiaId: number): Observable<Member[]> {
-    return this.http.get<Member[]>(`${this.baseUrl}/familias/${familiaId}/membros`);
+  listFamiliaMembers(familiaId: number): Observable<MemberRelacao[]> {
+    return this.http.get<MemberRelacao[]>(`${this.baseUrl}/familias/${familiaId}/membros`);
   }
 
   createFamilia(payload: Pick<Familia, 'nome'>): Observable<Familia> {

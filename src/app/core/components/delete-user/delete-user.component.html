@@ -19,7 +19,14 @@
 
     <nz-form-item class="!mb-0 pt-2">
       <nz-form-control>
-        <button nz-button nzType="primary" type="submit" class="h-10 min-w-44 rounded-md px-6">
+        <button
+          nz-button
+          nzType="primary"
+          nzDanger
+          type="submit"
+          [nzLoading]="isDeleting"
+          class="h-10 min-w-44 rounded-md px-6"
+        >
           Remover membro
         </button>
       </nz-form-control>

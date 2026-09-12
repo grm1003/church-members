@@ -1,0 +1,19 @@
+:host {
+  display: contents;
+}
+
+:host ::ng-deep .ant-upload.ant-upload-drag {
+  border-radius: 8px;
+  background-color: #fcfdfe;
+  border: 1px dashed #cbd5e1;
+  transition: all 0.2s ease-in-out;
+}
+
+:host ::ng-deep .ant-upload.ant-upload-drag:hover {
+  border-color: #1890ff;
+  background-color: #f0f7ff;
+}
+
+:host ::ng-deep .ant-upload.ant-upload-drag .ant-upload-btn {
+  padding: 16px 12px;
+}

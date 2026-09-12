@@ -25,22 +25,27 @@ export type RelacaoFamilia =
   | 'NORA'
   | 'OUTRO';
 
+export interface RelacaoDto {
+  familiaId: number;
+  tipoRelacao: RelacaoFamilia;
+}
+
 export interface Member {
   nome: string;
   email: string;
   data: string;
   aniversario: string;
-  familiaId: number[];
+  familiaId?: number[];
   familia: string[];
-  tipoRelacao: RelacaoFamilia;
+  relacoes?: MemberRelacao[];
+  tipoRelacao?: RelacaoFamilia;
 }
 
 export interface MemberSaveDto {
   nome: string;
   email: string;
   data: string;
-  familiaId: number[];
-  tipoRelacao: RelacaoFamilia;
+  tipoRelacao?: RelacaoDto[];
 }
 
 export interface Familia {
@@ -52,3 +57,19 @@ export interface RelacaoFamiliaOption {
   valor: RelacaoFamilia;
   descricao: string;
 }
+
+export interface MemberImportResponseDto {
+  totalProcessados: number;
+  membrosSalvos: number;
+  familiasCriadas: number;
+  erros: string[];
+}
+
+export interface MemberRelacao {
+  familiaId: number;
+  nomeFamilia?: string;
+  emailMembro: string;
+  nomeMembro: string;
+  tipoRelacao: RelacaoFamilia;
+}
+

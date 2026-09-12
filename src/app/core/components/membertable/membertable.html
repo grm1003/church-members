@@ -1,22 +1,49 @@
 <!-- Tabela -->
 <div class="flex flex-col gap-2 sm:gap-4 w-full h-full flex-1">
   <!-- Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full px-3 sm:px-4 flex-shrink-0">
-    <h2 class="text-xl sm:text-2xl font-bold whitespace-nowrap">{{ tableName }}</h2>
-    <div class="flex flex-1 items-center gap-2 sm:gap-4 flex-wrap sm:flex-nowrap">
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-2 sm:gap-4 w-full px-3 sm:px-4 flex-shrink-0">
+    <h2 class="text-xl sm:text-2xl font-bold whitespace-nowrap m-0">{{ tableName }}</h2>
+    <div class="flex flex-1 items-center justify-start lg:justify-end gap-2 sm:gap-3 flex-wrap">
       <app-data-picker (dateSelected)="onDateSelected($event)"></app-data-picker>
+      
       <button 
         nz-button 
         nzType="default"
         (click)="resetFilters()"
-        class="ml-auto sm:ml-auto whitespace-nowrap"
+        class="whitespace-nowrap"
+        title="Limpar Filtros"
       >
         <i nz-icon nzType="reload" nzTheme="outline"></i>
-        <span class="hidden sm:inline">Limpar Filtros</span>
-        <span class="sm:hidden">Limpar</span>
+        <span class="hidden sm:inline">Limpar</span>
+      </button>
+
+      <button
+        nz-button
+        nzType="default"
+        (click)="exportCsv()"
+        [nzLoading]="isExportingCsv"
+        class="whitespace-nowrap flex items-center gap-1"
+        title="Exportar dados para arquivo CSV"
+      >
+        <i nz-icon nzType="download" nzTheme="outline"></i>
+        <span class="hidden sm:inline">Exportar CSV</span>
+        <span class="sm:hidden">Exportar</span>
+      </button>
+
+      <button
+        nz-button
+        nzType="primary"
+        (click)="openCsvModal()"
+        class="whitespace-nowrap flex items-center gap-1"
+        title="Importar membros via CSV"
+      >
+        <i nz-icon nzType="upload" nzTheme="outline"></i>
+        <span class="hidden sm:inline">Importar CSV</span>
+        <span class="sm:hidden">Importar</span>
       </button>
     </div>
   </div>
+
 
   <!-- Table Container -->
   <div class="w-full overflow-x-auto overflow-y-auto px-2 sm:px-4 flex-1">
@@ -74,20 +101,27 @@
             <td class="whitespace-nowrap text-xs sm:text-sm">
                 <button
                   type="button"
-                  class="text-blue-600 hover:text-blue-800 cursor-pointer bg-transparent p-0 border-0 inline-block truncate max-w-[120px] sm:max-w-none"
+                  class="text-blue-600 hover:text-blue-800 cursor-pointer bg-transparent p-0 border-0 inline-flex items-center gap-1 truncate max-w-[120px] sm:max-w-none font-medium"
                   (click)="openFamilyModal(member)"
-                  [title]="'Familia de ' + member.nome"
+                  [title]="'Família de ' + member.nome"
                 >
-                  <span class="hidden sm:inline">Familia 一 {{ member.nome.split(' ')[0] }}</span>
+                  <i nz-icon nzType="team" nzTheme="outline"></i>
+                  <span class="hidden sm:inline">Família 一 {{ member.nome.split(' ')[0] }}</span>
                   <span class="sm:hidden">Fam.</span>
                 </button>
                 <nz-divider nzType="vertical"></nz-divider>
                 <a
-                  class="text-red-600 hover:text-red-800 cursor-pointer"
-                  [routerLink]="['/members/delete']"
-                  [queryParams]="{ nome: member.nome }"
+                  nz-popconfirm
+                  nzPopconfirmTitle="Deseja realmente excluir o membro '{{ member.nome }}'?"
+                  nzOkText="Sim, excluir"
+                  nzCancelText="Cancelar"
+                  nzOkDanger="true"
+                  (nzOnConfirm)="deleteMemberDirect(member)"
+                  class="text-red-600 hover:text-red-800 cursor-pointer inline-flex items-center gap-0.5"
+                  title="Excluir membro"
                 >
-                  Del
+                  <i nz-icon nzType="delete" nzTheme="outline"></i>
+                  <span class="hidden sm:inline">Excluir</span>
                 </a>
             </td>
           </tr>
@@ -104,20 +138,66 @@
   (nzOnCancel)="closeFamilyModal()"
   (nzOnOk)="closeFamilyModal()"
   [nzWidth]="'85vw'"
-  [nzBodyStyle]="{ 'max-height': '70vh', 'overflow': 'auto' }"
+  [nzStyle]="{ maxWidth: '650px' }"
+  [nzBodyStyle]="{ 'max-height': '70vh', 'overflow-y': 'auto', 'padding': '16px 24px' }"
 >
   <ng-container *nzModalContent>
-    <div class="w-full pr-2">
-      @if (selectedFamily.length === 0) {
-        <p class="text-xs sm:text-sm text-slate-500">Sem familiares vinculados.</p>
-      } @else {
-        <div class="space-y-2">
-          @for (relative of selectedFamily; track relative) {
-            <p class="text-xs sm:text-sm text-slate-700 break-words">{{ relative }}</p>
-          }
-        </div>
-      }
-    </div>
+    @if (isLoadingFamilyMembers) {
+      <div class="flex flex-col items-center justify-center py-8 gap-2">
+        <nz-spin nzSimple nzSize="large"></nz-spin>
+        <span class="text-xs text-slate-500">Carregando familiares vinculados...</span>
+      </div>
+    } @else if (familyGroups.length === 0) {
+      <div class="py-8 text-center">
+        <i nz-icon nzType="team" nzTheme="outline" class="text-3xl text-slate-300 mb-2"></i>
+        <p class="text-sm text-slate-500 mb-0">Nenhuma família vinculada a este membro.</p>
+        <p class="text-xs text-slate-400 mt-1">Ao cadastrar ou editar membros, selecione uma família para associá-los.</p>
+      </div>
+    } @else {
+      <div class="space-y-4">
+        @for (fam of familyGroups; track fam.familiaId) {
+          <div class="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm">
+            <div class="bg-slate-50 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between">
+              <span class="font-semibold text-sm text-slate-800 flex items-center gap-2">
+                <i nz-icon nzType="team" class="text-blue-600"></i>
+                {{ fam.nomeFamilia }}
+              </span>
+              <span class="text-xs text-slate-500 font-medium">
+                {{ fam.membros.length }} {{ fam.membros.length === 1 ? 'membro' : 'membros' }}
+              </span>
+            </div>
+
+            @if (fam.membros.length === 0) {
+              <div class="p-4 text-center text-xs text-slate-400">
+                Nenhum membro registrado nesta família.
+              </div>
+            } @else {
+              <div class="divide-y divide-slate-100">
+                @for (rel of fam.membros; track rel.emailMembro) {
+                  <div class="flex items-center justify-between p-3 hover:bg-slate-50 transition-colors">
+                    <div class="flex flex-col">
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm font-semibold text-slate-800">{{ rel.nomeMembro }}</span>
+                        @if (rel.emailMembro === currentSelectedMember?.email) {
+                          <nz-tag nzColor="default" class="text-[10px] leading-tight px-1.5 py-0">Este membro</nz-tag>
+                        }
+                      </div>
+                      <span class="text-xs text-slate-500 italic">{{ rel.emailMembro }}</span>
+                    </div>
+                    <nz-tag nzColor="blue" class="uppercase font-medium text-[11px]">
+                      {{ rel.tipoRelacao }}
+                    </nz-tag>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
   </ng-container>
 </nz-modal>
+
+<app-csv-modal [(isVisible)]="isCsvModalVisible"></app-csv-modal>
+
 

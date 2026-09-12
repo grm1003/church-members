@@ -38,7 +38,7 @@
     </nz-form-item>
 
     <nz-form-item>
-      <nz-form-label>Familia</nz-form-label>
+      <nz-form-label>Família</nz-form-label>
       <nz-form-control>
         <nz-select
           formControlName="familiaId"
@@ -54,6 +54,7 @@
       </nz-form-control>
     </nz-form-item>
 
+
     <nz-form-item>
       <nz-form-label nzRequired>Relação familiar</nz-form-label>
       <nz-form-control>
@@ -67,10 +68,18 @@
 
     <nz-form-item class="!mb-0 pt-2">
       <nz-form-control>
-        <button nz-button nzType="primary" type="submit" class="h-10 min-w-44 rounded-md px-6">
+        <button
+          nz-button
+          nzType="primary"
+          type="submit"
+          [nzLoading]="isSubmitting"
+          class="h-10 min-w-44 rounded-md px-6 flex items-center justify-center gap-1.5"
+        >
+          <i nz-icon nzType="user-add" nzTheme="outline"></i>
           Cadastrar membro
         </button>
       </nz-form-control>
     </nz-form-item>
   </form>
 </section>
+

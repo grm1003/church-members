@@ -1,13 +1,27 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectorRef, Component, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzDividerModule } from 'ng-zorro-antd/divider';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzTableModule, NzTableSortFn, NzTableSortOrder } from 'ng-zorro-antd/table';
-import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { Member } from '../../models/Member';
-import { DataPicker } from "../data-picker/data-picker";
-import { NzDividerModule } from 'ng-zorro-antd/divider';
+import { catchError, finalize, forkJoin, map, of } from 'rxjs';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzTagModule } from 'ng-zorro-antd/tag';
+import { Familia, Member, MemberRelacao } from '../../models/Member';
+import { FamiliasApiService } from '../../services/familias-api.service';
+import { GetMembers } from '../../services/get-members';
+import { MembersApiService } from '../../services/members-api.service';
+import { CsvModalComponent } from '../csv-modal/csv-modal.component';
+import { DataPicker } from '../data-picker/data-picker';
+
+export interface MemberFamilyGroup {
+  familiaId: number;
+  nomeFamilia: string;
+  membros: MemberRelacao[];
+}
 
 interface ColumnItem {
   name: string;
@@ -18,7 +32,19 @@ interface ColumnItem {
 
 @Component({
   selector: 'app-member-table',
-  imports: [CommonModule, RouterLink, DataPicker, NzTableModule, NzButtonModule, NzIconModule, NzDividerModule, NzModalModule],
+  imports: [
+    CommonModule,
+    DataPicker,
+    NzTableModule,
+    NzButtonModule,
+    NzIconModule,
+    NzDividerModule,
+    NzModalModule,
+    NzTagModule,
+    NzSpinModule,
+    NzPopconfirmModule,
+    CsvModalComponent,
+  ],
   standalone: true,
   templateUrl: './membertable.html',
   styleUrl: './membertable.css',
@@ -26,11 +52,21 @@ interface ColumnItem {
 export class Membertable {
   @Input() tableName: string = 'Tabela';
   @Input() tableData: Member[] = [];
+  @Input() isLoading: boolean = false;
 
-  isLoading = false;
+  private readonly membersApiService = inject(MembersApiService);
+  private readonly familiasService = inject(FamiliasApiService);
+  private readonly getMembersService = inject(GetMembers);
+  private readonly message = inject(NzMessageService);
+  private readonly cdr = inject(ChangeDetectorRef);
+
   isFamilyModalVisible = false;
-  familyModalTitle = 'Familia do membro';
-  selectedFamily: string[] = [];
+  isCsvModalVisible = false;
+  isExportingCsv = false;
+  familyModalTitle = 'Família do membro';
+  currentSelectedMember: Member | null = null;
+  familyGroups: MemberFamilyGroup[] = [];
+  isLoadingFamilyMembers = false;
   selectedDate: Date | null = null;
   filteredData: Member[] = [];
   readonly nomeColumn: ColumnItem = {
@@ -55,8 +91,9 @@ export class Membertable {
   };
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['tableData']) {
+    if (changes['tableData'] || changes['isLoading']) {
       this.applyBirthdayFilter();
+      this.cdr.markForCheck();
     }
   }
 
@@ -66,6 +103,7 @@ export class Membertable {
     this.nomeColumn.sortOrder = null;
     this.emailColumn.sortOrder = null;
     this.aniversarioColumn.sortOrder = 'ascend';
+    this.cdr.markForCheck();
   }
 
   private applyBirthdayFilter(): void {
@@ -154,12 +192,151 @@ export class Membertable {
   }
 
   openFamilyModal(member: Member): void {
-    this.familyModalTitle = `Familia de ${member.nome}`;
-    this.selectedFamily = [...member.familia];
+    this.currentSelectedMember = member;
+    this.familyModalTitle = `Família de ${member.nome}`;
     this.isFamilyModalVisible = true;
+    this.isLoadingFamilyMembers = true;
+    this.familyGroups = [];
+    this.cdr.markForCheck();
+
+    const relacoes = member.relacoes ?? [];
+    const directIds = member.familiaId ?? [];
+
+    const familyMap = new Map<number, string>();
+    for (const r of relacoes) {
+      if (r.familiaId) {
+        familyMap.set(r.familiaId, r.nomeFamilia || `Família #${r.familiaId}`);
+      }
+    }
+    for (let i = 0; i < directIds.length; i++) {
+      const fid = directIds[i];
+      if (!familyMap.has(fid)) {
+        familyMap.set(fid, member.familia?.[i] || `Família #${fid}`);
+      }
+    }
+
+    if (familyMap.size === 0) {
+      this.membersApiService.getMemberFamilies(member.email).pipe(
+        finalize(() => {
+          this.isLoadingFamilyMembers = false;
+          this.cdr.markForCheck();
+        })
+      ).subscribe({
+        next: (fams) => {
+          if (!fams || fams.length === 0) {
+            this.familyGroups = [];
+            this.cdr.markForCheck();
+            return;
+          }
+          this.fetchMembersForFamilies(fams);
+        },
+        error: () => {
+          this.familyGroups = [];
+          this.cdr.markForCheck();
+        },
+      });
+      return;
+    }
+
+    const famList = Array.from(familyMap.entries()).map(([id, nome]) => ({ id, nome }));
+    this.fetchMembersForFamilies(famList);
+  }
+
+  private fetchMembersForFamilies(fams: { id: number; nome: string }[]): void {
+    if (!fams || fams.length === 0) {
+      this.familyGroups = [];
+      this.isLoadingFamilyMembers = false;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    const requests = fams.map((f) =>
+      this.familiasService.listFamiliaMembers(f.id).pipe(
+        map((membros) => ({
+          familiaId: f.id,
+          nomeFamilia: f.nome,
+          membros,
+        })),
+        catchError(() =>
+          of({
+            familiaId: f.id,
+            nomeFamilia: f.nome,
+            membros: [],
+          })
+        )
+      )
+    );
+
+    forkJoin(requests).pipe(
+      finalize(() => {
+        this.isLoadingFamilyMembers = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: (groups) => {
+        this.familyGroups = groups;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   closeFamilyModal(): void {
     this.isFamilyModalVisible = false;
+    this.currentSelectedMember = null;
+    this.familyGroups = [];
+    this.isLoadingFamilyMembers = false;
+    this.cdr.markForCheck();
+  }
+
+  deleteMemberDirect(member: Member): void {
+    this.getMembersService.deleteMemberByEmail(member.email).pipe(
+      finalize(() => {
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: () => {
+        this.message.success(`Membro "${member.nome}" removido com sucesso.`);
+        this.cdr.markForCheck();
+      },
+      error: (err: any) => {
+        this.message.error(err?.message || `Erro ao remover membro "${member.nome}".`);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  openCsvModal(): void {
+    this.isCsvModalVisible = true;
+  }
+
+  closeCsvModal(): void {
+    this.isCsvModalVisible = false;
+  }
+
+  exportCsv(): void {
+    this.isExportingCsv = true;
+    this.membersApiService.exportMembersCsv().subscribe({
+      next: (blob) => {
+        this.isExportingCsv = false;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'membros.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        this.message.success('Lista de membros exportada em CSV com sucesso!');
+      },
+      error: (error) => {
+        this.isExportingCsv = false;
+        this.message.error('Erro ao exportar membros para CSV.');
+        console.error(error);
+      },
+    });
   }
 }
+

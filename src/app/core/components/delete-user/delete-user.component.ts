@@ -1,10 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { GetMembers } from '../../services/get-members';
 
 @Component({
@@ -18,6 +19,10 @@ export class DeleteUser {
   private membersService = inject(GetMembers);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private message = inject(NzMessageService);
+  private cdr = inject(ChangeDetectorRef);
+
+  isDeleting = false;
 
   validateForm = this.fb.group({
     nome: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(3)])
@@ -62,15 +67,24 @@ export class DeleteUser {
       return;
     }
 
-    const removed = this.membersService.removeMemberByName(nome);
+    this.isDeleting = true;
+    this.cdr.markForCheck();
 
-    if (!removed) {
-      console.warn(`Nenhum membro encontrado com o nome: ${nome}`);
-      return;
-    }
-
-    console.log(`Membro removido: ${nome}`);
-    this.validateForm.reset();
-    this.router.navigateByUrl('/home');
+    this.membersService.removeMemberByName(nome).subscribe({
+      next: () => {
+        this.isDeleting = false;
+        this.message.success(`Membro "${nome}" removido com sucesso.`);
+        this.validateForm.reset();
+        this.cdr.markForCheck();
+        this.router.navigateByUrl('/home');
+      },
+      error: (err: any) => {
+        this.isDeleting = false;
+        const msg = err?.message || `Erro ao remover membro "${nome}".`;
+        this.message.error(msg);
+        this.cdr.markForCheck();
+        console.error(err);
+      },
+    });
   }
 }
