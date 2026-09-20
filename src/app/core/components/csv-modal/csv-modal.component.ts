@@ -45,6 +45,7 @@ export class CsvModalComponent {
   selectedFile: File | null = null;
   isProcessing = false;
   isExporting = false;
+  isExportingDownloads = false;
   importResult: MemberImportResponseDto | null = null;
 
   beforeUpload = (file: NzUploadFile): boolean => {
@@ -162,6 +163,31 @@ export class CsvModalComponent {
         },
         error: (error) => {
           this.message.error('Erro ao exportar membros para CSV.');
+          console.error(error);
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  exportToDownloads(): void {
+    this.isExportingDownloads = true;
+    this.cdr.markForCheck();
+
+    this.membersApiService
+      .exportMembersCsvToDownloads()
+      .pipe(
+        finalize(() => {
+          this.isExportingDownloads = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: (res) => {
+          this.message.success(res.mensagem || 'Arquivo salvo na pasta Downloads!');
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          this.message.error('Erro ao salvar CSV na pasta Downloads.');
           console.error(error);
           this.cdr.markForCheck();
         },

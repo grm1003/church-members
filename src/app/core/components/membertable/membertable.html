@@ -23,11 +23,24 @@
         (click)="exportCsv()"
         [nzLoading]="isExportingCsv"
         class="whitespace-nowrap flex items-center gap-1"
-        title="Exportar dados para arquivo CSV"
+        title="Baixar dados em CSV pelo navegador"
       >
         <i nz-icon nzType="download" nzTheme="outline"></i>
         <span class="hidden sm:inline">Exportar CSV</span>
         <span class="sm:hidden">Exportar</span>
+      </button>
+
+      <button
+        nz-button
+        nzType="default"
+        (click)="exportCsvToDownloads()"
+        [nzLoading]="isExportingDownloads"
+        class="whitespace-nowrap flex items-center gap-1 !border-blue-500 !text-blue-600 hover:!bg-blue-50"
+        title="Salvar membros.csv diretamente na pasta Downloads do Windows"
+      >
+        <i nz-icon nzType="folder-open" nzTheme="outline"></i>
+        <span class="hidden sm:inline">Salvar em Downloads</span>
+        <span class="sm:hidden">Downloads</span>
       </button>
 
       <button
@@ -91,11 +104,11 @@
         </tr>
       </thead>
       <tbody>
-        @for (member of filterTable.data; track member.email) {
+        @for (member of filterTable.data; track (member.id ?? member.nome)) {
           <tr>
             <td class="whitespace-nowrap text-xs sm:text-sm">{{ member.nome.split(' ')[0] }}<span class="hidden sm:inline"> {{ member.nome.split(' ').slice(1).join(' ') }}</span></td>
             <td class="whitespace-nowrap overflow-hidden text-ellipsis text-xs sm:text-sm">
-              <span class="italic text-blue-600">{{ member.email }}</span>
+              <span class="italic text-blue-600">{{ member.email || '-' }}</span>
             </td>
             <td class="whitespace-nowrap text-xs sm:text-sm">{{ member.aniversario | date: 'dd/MM/yyyy' }}</td>
             <td class="whitespace-nowrap text-xs sm:text-sm">
@@ -112,7 +125,7 @@
                 <nz-divider nzType="vertical"></nz-divider>
                 <a
                   nz-popconfirm
-                  nzPopconfirmTitle="Deseja realmente excluir o membro '{{ member.nome }}'?"
+                  nzPopconfirmTitle="Deseja realmente excluir o membro '{{ member.nome }}' (ID: {{ member.id }})?"
                   nzOkText="Sim, excluir"
                   nzCancelText="Cancelar"
                   nzOkDanger="true"
@@ -173,16 +186,18 @@
               </div>
             } @else {
               <div class="divide-y divide-slate-100">
-                @for (rel of fam.membros; track rel.emailMembro) {
+                @for (rel of fam.membros; track (rel.membroId ?? rel.nomeMembro)) {
                   <div class="flex items-center justify-between p-3 hover:bg-slate-50 transition-colors">
                     <div class="flex flex-col">
                       <div class="flex items-center gap-2">
                         <span class="text-sm font-semibold text-slate-800">{{ rel.nomeMembro }}</span>
-                        @if (rel.emailMembro === currentSelectedMember?.email) {
+                        @if (rel.membroId === currentSelectedMember?.id || (rel.emailMembro && rel.emailMembro === currentSelectedMember?.email)) {
                           <nz-tag nzColor="default" class="text-[10px] leading-tight px-1.5 py-0">Este membro</nz-tag>
                         }
                       </div>
-                      <span class="text-xs text-slate-500 italic">{{ rel.emailMembro }}</span>
+                      @if (rel.emailMembro) {
+                        <span class="text-xs text-slate-500 italic">{{ rel.emailMembro }}</span>
+                      }
                     </div>
                     <nz-tag nzColor="blue" class="uppercase font-medium text-[11px]">
                       {{ rel.tipoRelacao }}

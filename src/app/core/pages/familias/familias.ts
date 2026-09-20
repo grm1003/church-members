@@ -17,6 +17,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { Familia, MemberRelacao } from '../../models/Member';
 import { FamiliasApiService } from '../../services/familias-api.service';
+import { GetMembers } from '../../services/get-members';
 
 @Component({
   selector: 'app-familias',
@@ -42,6 +43,7 @@ import { FamiliasApiService } from '../../services/familias-api.service';
 })
 export class Familias implements OnInit {
   private readonly familiasService = inject(FamiliasApiService);
+  private readonly getMembersService = inject(GetMembers);
   private readonly message = inject(NzMessageService);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -138,10 +140,12 @@ export class Familias implements OnInit {
       next: () => {
         this.message.success(`Família "${familia.nome}" excluída com sucesso.`);
         this.loadFamilias();
+        this.getMembersService.reloadMembers();
       },
       error: (err) => {
         this.isLoading = false;
-        this.message.error(`Erro ao excluir família "${familia.nome}".`);
+        const msg = err?.error?.message || err?.message || `Erro ao excluir família "${familia.nome}".`;
+        this.message.error(msg);
         this.cdr.markForCheck();
         console.error(err);
       },

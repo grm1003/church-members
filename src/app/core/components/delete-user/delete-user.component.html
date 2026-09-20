@@ -1,35 +1,96 @@
 <section class="mx-auto w-full max-w-3xl rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-  <h2 class="text-2xl font-semibold text-slate-900">Remover Membros</h2>
-  <p class="mt-2 text-sm text-slate-700">Informe o nome completo do membro para remover.</p>
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-semibold text-slate-900">Excluir Membro</h2>
+      <p class="mt-1 text-sm text-slate-600">
+        Busque pelo nome, e-mail ou ID. A exclusão é segura e realizada individualmente por ID numérico.
+      </p>
+    </div>
+    <button nz-button nzType="default" (click)="voltar()" class="flex items-center gap-1">
+      <i nz-icon nzType="arrow-left" nzTheme="outline"></i> Voltar
+    </button>
+  </div>
 
-  <form
-    nz-form
-    nzLayout="vertical"
-    [nzAutoTips]="autoTips"
-    [formGroup]="validateForm"
-    (ngSubmit)="submitForm()"
-    class="mt-6 space-y-1"
-  >
-    <nz-form-item>
-      <nz-form-label nzRequired>Nome completo</nz-form-label>
-      <nz-form-control nzErrorTip="Informe o nome completo com no minimo 3 caracteres.">
-        <input nz-input formControlName="nome" placeholder="Ex.: Maria Silva" />
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item class="!mb-0 pt-2">
+  <div class="mt-6">
+    <nz-form-item class="mb-4">
+      <nz-form-label class="font-medium">Digite o nome, ID ou e-mail do membro</nz-form-label>
       <nz-form-control>
-        <button
-          nz-button
-          nzType="primary"
-          nzDanger
-          type="submit"
-          [nzLoading]="isDeleting"
-          class="h-10 min-w-44 rounded-md px-6"
-        >
-          Remover membro
-        </button>
+        <div class="flex gap-2">
+          <input
+            nz-input
+            [formControl]="searchControl"
+            placeholder="Ex.: Maria Silva ou 12 ou maria@email.com"
+            class="h-10"
+          />
+        </div>
       </nz-form-control>
     </nz-form-item>
-  </form>
+  </div>
+
+  @if (hasHomonyms) {
+    <div class="mb-4">
+      <nz-alert
+        nzType="warning"
+        nzShowIcon
+        nzMessage="Atenção: Existem membros com nomes iguais ou parecidos!"
+        nzDescription="Confirme a Data de Nascimento e o número do ID antes de clicar no botão de exclusão para garantir que está excluindo a pessoa certa."
+      ></nz-alert>
+    </div>
+  }
+
+  @if (hasSearched && searchControl.value.trim().length > 0) {
+    @if (filteredMembers.length === 0) {
+      <div class="rounded-lg border border-dashed border-slate-300 p-8 text-center text-slate-500">
+        <i nz-icon nzType="frown" nzTheme="outline" class="text-3xl text-slate-300 mb-2"></i>
+        <p class="text-sm font-medium">Nenhum membro encontrado com "{{ searchControl.value }}".</p>
+        <p class="text-xs text-slate-400">Verifique a ortografia ou tente pesquisar apenas pelo primeiro nome.</p>
+      </div>
+    } @else {
+      <div class="space-y-3">
+        <p class="text-xs font-semibold uppercase text-slate-500 tracking-wider">
+          {{ filteredMembers.length }} {{ filteredMembers.length === 1 ? 'membro encontrado' : 'membros encontrados' }}
+        </p>
+
+        @for (m of filteredMembers; track m.id) {
+          <div class="rounded-lg border border-slate-200 p-4 bg-slate-50 hover:bg-white hover:border-slate-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <nz-tag nzColor="blue" class="font-mono font-semibold">ID #{{ m.id }}</nz-tag>
+                <span class="text-base font-bold text-slate-900">{{ m.nome }}</span>
+              </div>
+              <div class="flex items-center gap-4 text-xs text-slate-600 flex-wrap">
+                <span><strong>Nascimento:</strong> {{ (m.aniversario | date: 'dd/MM/yyyy') || '-' }}</span>
+                <span><strong>E-mail:</strong> {{ m.email || 'Sem e-mail' }}</span>
+                @if (m.familia && m.familia.length > 0) {
+                  <span><strong>Família:</strong> {{ m.familia.join(', ') }}</span>
+                }
+              </div>
+            </div>
+
+            <button
+              nz-button
+              nzType="primary"
+              nzDanger
+              nz-popconfirm
+              nzPopconfirmTitle="Confirmar a exclusão definitiva de '{{ m.nome }}' (ID: {{ m.id }})? Esta ação não afetará outros membros."
+              nzOkText="Sim, excluir"
+              nzCancelText="Cancelar"
+              nzOkDanger="true"
+              (nzOnConfirm)="confirmDelete(m)"
+              [nzLoading]="deletingId === m.id"
+              class="h-9 px-4 flex items-center justify-center gap-1.5 whitespace-nowrap self-end sm:self-center"
+            >
+              <i nz-icon nzType="delete" nzTheme="outline"></i>
+              Excluir este membro
+            </button>
+          </div>
+        }
+      </div>
+    }
+  } @else {
+    <div class="rounded-lg border border-slate-100 bg-slate-50 p-6 text-center text-slate-500">
+      <i nz-icon nzType="search" nzTheme="outline" class="text-2xl text-slate-400 mb-1"></i>
+      <p class="text-sm">Digite no campo acima para pesquisar o membro a ser removido com segurança.</p>
+    </div>
+  }
 </section>

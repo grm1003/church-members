@@ -1,5 +1,21 @@
-<header class="sticky top-0 left-0 w-full z-50 bg-[#071D41] text-white">
+<header class="sticky top-0 left-0 w-full z-50 bg-[#071D41] text-white shadow-md">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        <h1 class="text-lg font-semibold m-0">Gestão de Membros</h1>
+        <h1 class="text-lg font-semibold m-0 text-white tracking-wide flex items-center gap-2">
+            <span>⛪</span> Gestão de Membros
+        </h1>
+        <div class="flex items-center gap-3">
+            <button
+                nz-button
+                nzType="default"
+                nzSize="small"
+                class="!bg-emerald-600 !text-white !border-none hover:!bg-emerald-700 flex items-center gap-1.5 shadow-sm text-xs px-3 py-1 rounded"
+                [nzLoading]="isBackingUp"
+                (click)="backupBanco()"
+                title="Salva um backup completo do banco de dados em C:\ProgramData\ChurchMembers\backup"
+            >
+                <i nz-icon nzType="cloud-sync" nzTheme="outline"></i>
+                <span>Fazer Backup</span>
+            </button>
+        </div>
     </div>
 </header>

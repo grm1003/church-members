@@ -64,9 +64,12 @@ export class CreateFamilia {
         this.cdr.markForCheck();
         this.router.navigateByUrl('/familias');
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isSubmitting = false;
-        this.message.error('Erro ao cadastrar família.');
+        const msg = err?.error?.message
+          || (Array.isArray(err?.error?.details) ? err.error.details.join(' ') : null)
+          || 'Erro ao cadastrar família.';
+        this.message.error(msg);
         this.cdr.markForCheck();
         console.error(err);
       },

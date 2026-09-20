@@ -42,6 +42,18 @@
             <i nz-icon nzType="download" nzTheme="outline"></i>
             Exportar Atual
           </button>
+          <button
+            nz-button
+            nzType="primary"
+            nzSize="small"
+            class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5"
+            [nzLoading]="isExportingDownloads"
+            (click)="exportToDownloads()"
+            title="Salva membros.csv diretamente na sua pasta Downloads do Windows"
+          >
+            <i nz-icon nzType="folder-open" nzTheme="outline"></i>
+            Salvar em Downloads (Windows)
+          </button>
         </div>
       </div>
 

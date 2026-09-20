@@ -31,8 +31,9 @@ export interface RelacaoDto {
 }
 
 export interface Member {
+  id?: number;
   nome: string;
-  email: string;
+  email?: string | null;
   data: string;
   aniversario: string;
   familiaId?: number[];
@@ -43,7 +44,7 @@ export interface Member {
 
 export interface MemberSaveDto {
   nome: string;
-  email: string;
+  email?: string | null;
   data: string;
   tipoRelacao?: RelacaoDto[];
 }
@@ -68,7 +69,8 @@ export interface MemberImportResponseDto {
 export interface MemberRelacao {
   familiaId: number;
   nomeFamilia?: string;
-  emailMembro: string;
+  membroId?: number;
+  emailMembro?: string | null;
   nomeMembro: string;
   tipoRelacao: RelacaoFamilia;
 }

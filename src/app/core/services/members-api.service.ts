@@ -40,30 +40,44 @@ export class MembersApiService {
     );
   }
 
-  getMember(email: string): Observable<Member> {
-    return this.http.get<Member>(`${this.baseUrl}/members/${encodeURIComponent(email)}`);
+  getMember(id: number): Observable<Member> {
+    return this.http.get<Member>(`${this.baseUrl}/members/${id}`);
   }
 
-  getMemberFamilies(email: string): Observable<Familia[]> {
-    return this.http.get<Familia[]>(`${this.baseUrl}/members/${encodeURIComponent(email)}/familias`);
+  getMemberFamilies(id: number): Observable<Familia[]> {
+    return this.http.get<Familia[]>(`${this.baseUrl}/members/${id}/familias`);
   }
 
   createMember(payload: MemberSaveDto): Observable<string> {
     return this.http.post(`${this.baseUrl}/members`, payload, { responseType: 'text' });
   }
 
-  updateMember(email: string, payload: MemberSaveDto): Observable<Member> {
-    return this.http.put<Member>(`${this.baseUrl}/members/${encodeURIComponent(email)}`, payload);
+  updateMember(id: number, payload: MemberSaveDto): Observable<Member> {
+    return this.http.put<Member>(`${this.baseUrl}/members/${id}`, payload);
   }
 
-  deleteMember(email: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/members/${encodeURIComponent(email)}`);
+  deleteMember(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/members/${id}`);
   }
 
   exportMembersCsv(): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/members/export/csv`, {
       responseType: 'blob',
     });
+  }
+
+  exportMembersCsvToDownloads(): Observable<{ sucesso: boolean; caminho: string; mensagem: string }> {
+    return this.http.post<{ sucesso: boolean; caminho: string; mensagem: string }>(
+      `${this.baseUrl}/members/export/csv/downloads`,
+      {}
+    );
+  }
+
+  backupDatabase(): Observable<{ sucesso: boolean; caminho: string; mensagem: string }> {
+    return this.http.post<{ sucesso: boolean; caminho: string; mensagem: string }>(
+      `${this.baseUrl}/api/backup`,
+      {}
+    );
   }
 
   importMembersCsv(file: File): Observable<MemberImportResponseDto> {

@@ -63,6 +63,7 @@ export class Membertable {
   isFamilyModalVisible = false;
   isCsvModalVisible = false;
   isExportingCsv = false;
+  isExportingDownloads = false;
   familyModalTitle = 'Família do membro';
   currentSelectedMember: Member | null = null;
   familyGroups: MemberFamilyGroup[] = [];
@@ -79,7 +80,7 @@ export class Membertable {
   readonly emailColumn: ColumnItem = {
     name: 'Email',
     sortOrder: null,
-    sortFn: (a: Member, b: Member) => a.email.localeCompare(b.email),
+    sortFn: (a: Member, b: Member) => (a.email || '').localeCompare(b.email || ''),
     sortDirections: ['ascend', 'descend', null],
   };
 
@@ -215,8 +216,8 @@ export class Membertable {
       }
     }
 
-    if (familyMap.size === 0) {
-      this.membersApiService.getMemberFamilies(member.email).pipe(
+    if (familyMap.size === 0 && member.id) {
+      this.membersApiService.getMemberFamilies(member.id).pipe(
         finalize(() => {
           this.isLoadingFamilyMembers = false;
           this.cdr.markForCheck();
@@ -292,17 +293,22 @@ export class Membertable {
   }
 
   deleteMemberDirect(member: Member): void {
-    this.getMembersService.deleteMemberByEmail(member.email).pipe(
+    if (!member.id) {
+      this.message.error(`Membro "${member.nome}" não possui ID válido para exclusão.`);
+      return;
+    }
+
+    this.getMembersService.deleteMember(member.id).pipe(
       finalize(() => {
         this.cdr.markForCheck();
       })
     ).subscribe({
       next: () => {
-        this.message.success(`Membro "${member.nome}" removido com sucesso.`);
+        this.message.success(`Membro "${member.nome}" (ID: ${member.id}) removido com sucesso.`);
         this.cdr.markForCheck();
       },
       error: (err: any) => {
-        this.message.error(err?.message || `Erro ao remover membro "${member.nome}".`);
+        this.message.error(err?.error?.message || err?.message || `Erro ao remover membro "${member.nome}".`);
         this.cdr.markForCheck();
       },
     });
@@ -334,6 +340,21 @@ export class Membertable {
       error: (error) => {
         this.isExportingCsv = false;
         this.message.error('Erro ao exportar membros para CSV.');
+        console.error(error);
+      },
+    });
+  }
+
+  exportCsvToDownloads(): void {
+    this.isExportingDownloads = true;
+    this.membersApiService.exportMembersCsvToDownloads().subscribe({
+      next: (res) => {
+        this.isExportingDownloads = false;
+        this.message.success(res.mensagem || 'Arquivo salvo com sucesso na pasta Downloads!');
+      },
+      error: (error) => {
+        this.isExportingDownloads = false;
+        this.message.error('Erro ao salvar CSV na pasta Downloads.');
         console.error(error);
       },
     });

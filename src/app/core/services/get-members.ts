@@ -25,7 +25,7 @@ export class GetMembers {
   addMember(member: MemberSaveDto): Observable<string> {
     const payload: MemberSaveDto = {
       nome: member.nome.trim(),
-      email: member.email.trim(),
+      email: member.email && member.email.trim() ? member.email.trim() : undefined,
       data: member.data.trim(),
       tipoRelacao: member.tipoRelacao ?? [],
     };
@@ -39,6 +39,13 @@ export class GetMembers {
     );
   }
 
+  deleteMember(id: number): Observable<void> {
+    return this.membersApi.deleteMember(id).pipe(
+      switchMap(() => this.loadFromApi()),
+      map(() => void 0)
+    );
+  }
+
   removeMemberByName(name: string): Observable<void> {
     const normalizedName = name.trim().toLowerCase();
 
@@ -49,23 +56,27 @@ export class GetMembers {
 
     return membersSource$.pipe(
       switchMap((members) => {
-        const memberToRemove = members.find(
+        const matches = members.filter(
           (member) => member.nome.trim().toLowerCase() === normalizedName
         );
 
-        if (!memberToRemove) {
+        if (matches.length === 0) {
           throw new Error(`Nenhum membro encontrado com o nome: "${name}".`);
         }
 
-        return this.membersApi.deleteMember(memberToRemove.email);
-      }),
-      switchMap(() => this.loadFromApi()),
-      map(() => void 0)
-    );
-  }
+        if (matches.length > 1) {
+          throw new Error(
+            `Existem ${matches.length} membros com o nome "${name}". Para evitar erros de homônimos, selecione o membro específico diretamente na lista de membros ou no seletor de busca.`
+          );
+        }
 
-  deleteMemberByEmail(email: string): Observable<void> {
-    return this.membersApi.deleteMember(email).pipe(
+        const memberToRemove = matches[0];
+        if (!memberToRemove.id) {
+          throw new Error(`Membro encontrado não possui ID válido.`);
+        }
+
+        return this.membersApi.deleteMember(memberToRemove.id);
+      }),
       switchMap(() => this.loadFromApi()),
       map(() => void 0)
     );
