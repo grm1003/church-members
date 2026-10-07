@@ -19,6 +19,16 @@
     </nz-form-item>
 
     <nz-form-item>
+      <nz-form-label nzRequired>Gênero</nz-form-label>
+      <nz-form-control nzErrorTip="Selecione o gênero do membro.">
+        <nz-radio-group formControlName="genero" class="flex gap-4 pt-1">
+          <label nz-radio nzValue="MASCULINO">Masculino</label>
+          <label nz-radio nzValue="FEMININO">Feminino</label>
+        </nz-radio-group>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
       <nz-form-label>E-mail (opcional)</nz-form-label>
       <nz-form-control nzErrorTip="Informe um e-mail válido (ex.: nome@dominio.com) ou deixe em branco.">
         <input nz-input formControlName="email" type="text" inputmode="email" placeholder="Ex.: maria@email.com (opcional)" />
