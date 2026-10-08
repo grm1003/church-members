@@ -16,6 +16,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { Familia, Member, MemberSaveDto, RelacaoFamiliaOption } from '../../models/Member';
 import { FamiliasApiService } from '../../services/familias-api.service';
@@ -39,6 +40,7 @@ function optionalEmailValidator(control: AbstractControl): ValidationErrors | nu
     NzDatePickerModule,
     NzFormModule,
     NzInputModule,
+    NzRadioModule,
     NzSelectModule,
     NzIconModule,
   ],
@@ -56,6 +58,7 @@ export class FormUser implements OnInit {
   validateForm = this.fb.group({
     nome: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(3)]),
     email: this.fb.control<string | null>('', [optionalEmailValidator]),
+    genero: this.fb.control<Member['genero'] | null>(null, [Validators.required]),
     aniversario: this.fb.control<Date | null>(null, [Validators.required]),
     familiaId: this.fb.nonNullable.control<number[]>([]),
     tipoRelacao: this.fb.nonNullable.control<Member['tipoRelacao']>('OUTRO'),
@@ -134,6 +137,7 @@ export class FormUser implements OnInit {
     const payload: MemberSaveDto = {
       nome: formValue.nome.trim(),
       email: emailVal.length > 0 ? emailVal : undefined,
+      genero: formValue.genero as NonNullable<Member['genero']>,
       data: this.formatDate(formValue.aniversario as Date),
       tipoRelacao: relacoesList,
     };
@@ -146,7 +150,7 @@ export class FormUser implements OnInit {
         this.isSubmitting = false;
         this.message.success(`Membro "${payload.nome}" cadastrado com sucesso!`);
         this.validateForm.reset();
-        this.validateForm.patchValue({ tipoRelacao: 'OUTRO', familiaId: [] });
+        this.validateForm.patchValue({ tipoRelacao: 'OUTRO', familiaId: [], genero: null });
         this.cdr.markForCheck();
         this.router.navigateByUrl('/home');
       },

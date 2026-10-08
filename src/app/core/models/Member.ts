@@ -25,6 +25,8 @@ export type RelacaoFamilia =
   | 'NORA'
   | 'OUTRO';
 
+export type Genero = 'MASCULINO' | 'FEMININO';
+
 export interface RelacaoDto {
   familiaId: number;
   tipoRelacao: RelacaoFamilia;
@@ -36,6 +38,7 @@ export interface Member {
   email?: string | null;
   data: string;
   aniversario: string;
+  genero?: Genero;
   familiaId?: number[];
   familia: string[];
   relacoes?: MemberRelacao[];
@@ -46,6 +49,7 @@ export interface MemberSaveDto {
   nome: string;
   email?: string | null;
   data: string;
+  genero: Genero;
   tipoRelacao?: RelacaoDto[];
 }
 

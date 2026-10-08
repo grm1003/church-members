@@ -26,6 +26,7 @@ export class GetMembers {
     const payload: MemberSaveDto = {
       nome: member.nome.trim(),
       email: member.email && member.email.trim() ? member.email.trim() : undefined,
+      genero: member.genero,
       data: member.data.trim(),
       tipoRelacao: member.tipoRelacao ?? [],
     };
