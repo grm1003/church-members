@@ -78,4 +78,23 @@ export interface MemberRelacao {
   nomeMembro: string;
   tipoRelacao: RelacaoFamilia;
 }
+
+export interface MemberEstatisticasDto {
+  total: number;
+  totalMasculino: number;
+  totalFeminino: number;
+}
+
+export interface MemberResumoDto {
+  id: number;
+  nome: string;
+  genero: Genero;
+  dataNascimento: string;
+  idade: number | null;
+}
+
+export interface MemberFiltroResponseDto {
+  total: number;
+  membros: MemberResumoDto[];
+}
 

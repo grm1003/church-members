@@ -18,7 +18,8 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { Familia, Member, MemberSaveDto, RelacaoFamiliaOption } from '../../models/Member';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { Familia, Member, MemberSaveDto, RelacaoDto, RelacaoFamilia, RelacaoFamiliaOption } from '../../models/Member';
 import { FamiliasApiService } from '../../services/familias-api.service';
 import { GetMembers } from '../../services/get-members';
 
@@ -42,6 +43,7 @@ function optionalEmailValidator(control: AbstractControl): ValidationErrors | nu
     NzInputModule,
     NzRadioModule,
     NzSelectModule,
+    NzSwitchModule,
     NzIconModule,
   ],
   templateUrl: './form-user.component.html',
@@ -60,6 +62,7 @@ export class FormUser implements OnInit {
     email: this.fb.control<string | null>('', [optionalEmailValidator]),
     genero: this.fb.control<Member['genero'] | null>(null, [Validators.required]),
     aniversario: this.fb.control<Date | null>(null, [Validators.required]),
+    criarFamiliaAutomatica: this.fb.nonNullable.control<boolean>(false),
     familiaId: this.fb.nonNullable.control<number[]>([]),
     tipoRelacao: this.fb.nonNullable.control<Member['tipoRelacao']>('OUTRO'),
   });
@@ -85,6 +88,17 @@ export class FormUser implements OnInit {
   ngOnInit(): void {
     this.loadFamilies();
     this.loadRelations();
+
+    this.validateForm.controls.criarFamiliaAutomatica.valueChanges.subscribe((ativar) => {
+      const familiaControl = this.validateForm.controls.familiaId;
+      if (ativar) {
+        familiaControl.setValue([]);
+        familiaControl.disable();
+      } else {
+        familiaControl.enable();
+      }
+      this.cdr.markForCheck();
+    });
   }
 
   loadFamilies(): void {
@@ -125,14 +139,45 @@ export class FormUser implements OnInit {
     }
 
     const formValue = this.validateForm.getRawValue();
-    const familiaIds: number[] = formValue.familiaId ?? [];
-    const tipoRelacao = formValue.tipoRelacao || 'OUTRO';
+    const nomeMembro = formValue.nome.trim();
 
-    const relacoesList = familiaIds.map((id) => ({
+    this.isSubmitting = true;
+    this.cdr.markForCheck();
+
+    if (formValue.criarFamiliaAutomatica) {
+      const nomeFamilia = `Família ${nomeMembro}`;
+      this.familiasService.createFamilia({ nome: nomeFamilia }).subscribe({
+        next: (novaFamilia) => {
+          this.salvarMembroFinal(formValue, [{
+            familiaId: novaFamilia.id,
+            tipoRelacao: (formValue.tipoRelacao as RelacaoFamilia) || 'OUTRO',
+          }]);
+        },
+        error: (err: any) => {
+          this.isSubmitting = false;
+          const msg = err?.error?.message || 'Erro ao criar família automática para o membro.';
+          this.message.error(msg);
+          this.cdr.markForCheck();
+          console.error('Erro ao criar família automática:', err);
+        },
+      });
+      return;
+    }
+
+    const familiaIds: number[] = formValue.familiaId ?? [];
+    const tipoRelacao = (formValue.tipoRelacao as RelacaoFamilia) || 'OUTRO';
+    const relacoesList: RelacaoDto[] = familiaIds.map((id) => ({
       familiaId: id,
       tipoRelacao,
     }));
 
+    this.salvarMembroFinal(formValue, relacoesList);
+  }
+
+  private salvarMembroFinal(
+    formValue: ReturnType<typeof this.validateForm.getRawValue>,
+    relacoesList: RelacaoDto[]
+  ): void {
     const emailVal = formValue.email?.trim() || '';
     const payload: MemberSaveDto = {
       nome: formValue.nome.trim(),
@@ -142,15 +187,18 @@ export class FormUser implements OnInit {
       tipoRelacao: relacoesList,
     };
 
-    this.isSubmitting = true;
-    this.cdr.markForCheck();
-
     this.membersService.addMember(payload).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.message.success(`Membro "${payload.nome}" cadastrado com sucesso!`);
         this.validateForm.reset();
-        this.validateForm.patchValue({ tipoRelacao: 'OUTRO', familiaId: [], genero: null });
+        this.validateForm.patchValue({
+          tipoRelacao: 'OUTRO',
+          familiaId: [],
+          genero: null,
+          criarFamiliaAutomatica: false,
+        });
+        this.validateForm.controls.familiaId.enable();
         this.cdr.markForCheck();
         this.router.navigateByUrl('/home');
       },

@@ -2,7 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
-import { Familia, Member, MemberImportResponseDto, MemberSaveDto } from '../models/Member';
+import {
+  Familia,
+  Member,
+  MemberEstatisticasDto,
+  MemberFiltroResponseDto,
+  MemberImportResponseDto,
+  MemberSaveDto,
+} from '../models/Member';
 
 @Injectable({
   providedIn: 'root',
@@ -88,5 +95,27 @@ export class MembersApiService {
 
   listMembersWithFamilies(): Observable<Member[]> {
     return this.listMembers();
+  }
+
+  getEstatisticas(): Observable<MemberEstatisticasDto> {
+    return this.http.get<MemberEstatisticasDto>(`${this.baseUrl}/members/estatisticas`);
+  }
+
+  filtrarMembros(
+    genero?: string,
+    minIdade?: number | null,
+    maxIdade?: number | null
+  ): Observable<MemberFiltroResponseDto> {
+    const params: Record<string, string> = {};
+    if (genero && genero !== 'TODOS') {
+      params['genero'] = genero;
+    }
+    if (minIdade !== null && minIdade !== undefined) {
+      params['minIdade'] = String(minIdade);
+    }
+    if (maxIdade !== null && maxIdade !== undefined) {
+      params['maxIdade'] = String(maxIdade);
+    }
+    return this.http.get<MemberFiltroResponseDto>(`${this.baseUrl}/members/estatisticas/filtro`, { params });
   }
 }

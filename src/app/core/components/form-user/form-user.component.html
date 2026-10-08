@@ -49,6 +49,20 @@
     </nz-form-item>
 
     <nz-form-item>
+      <div class="flex items-center gap-3 py-1">
+        <nz-switch formControlName="criarFamiliaAutomatica" id="criarFamiliaSwitch"></nz-switch>
+        <label for="criarFamiliaSwitch" class="cursor-pointer font-medium text-slate-800 text-sm select-none">
+          Criar família automaticamente com o nome da pessoa
+        </label>
+      </div>
+      @if (validateForm.get('criarFamiliaAutomatica')?.value) {
+        <p class="mt-1 text-xs text-sky-700 bg-sky-50 p-2 rounded border border-sky-200">
+          ✨ Será criada uma nova família: <strong>Família {{ validateForm.get('nome')?.value || '...' }}</strong> e o membro será vinculado a ela.
+        </p>
+      }
+    </nz-form-item>
+
+    <nz-form-item>
       <nz-form-label>Família</nz-form-label>
       <nz-form-control>
         <nz-select

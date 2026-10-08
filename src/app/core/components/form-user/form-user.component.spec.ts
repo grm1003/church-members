@@ -51,6 +51,7 @@ describe('FormUserComponent', () => {
       email: 'joao@silva.com',
       genero: null,
       aniversario: new Date('1990-05-15T12:00:00Z'),
+      criarFamiliaAutomatica: false,
       familiaId: [1],
       tipoRelacao: 'PAI',
     });
@@ -68,6 +69,7 @@ describe('FormUserComponent', () => {
       email: 'joao@silva.com',
       genero: 'MASCULINO',
       aniversario: new Date('1990-05-15T12:00:00Z'),
+      criarFamiliaAutomatica: false,
       familiaId: [1],
       tipoRelacao: 'PAI',
     });
@@ -80,6 +82,45 @@ describe('FormUserComponent', () => {
         email: 'joao@silva.com',
         genero: 'MASCULINO',
         tipoRelacao: [{ familiaId: 1, tipoRelacao: 'PAI' }],
+      })
+    );
+  });
+
+  it('should disable and clear familiaId when criarFamiliaAutomatica is enabled', () => {
+    component.validateForm.controls.familiaId.setValue([1]);
+    expect(component.validateForm.controls.familiaId.value).toEqual([1]);
+
+    component.validateForm.controls.criarFamiliaAutomatica.setValue(true);
+
+    expect(component.validateForm.controls.familiaId.disabled).toBe(true);
+    expect(component.validateForm.controls.familiaId.value).toEqual([]);
+  });
+
+  it('should automatically create family and link to member when switch is active', () => {
+    const getMembersService = TestBed.inject(GetMembers);
+    const createFamiliaSpy = vi.spyOn(familiasService, 'createFamilia').mockReturnValue(
+      of({ id: 99, nome: 'Família João Silva' })
+    );
+    const addMemberSpy = vi.spyOn(getMembersService, 'addMember').mockReturnValue(of('OK'));
+
+    component.validateForm.patchValue({
+      nome: 'João Silva',
+      email: 'joao@silva.com',
+      genero: 'MASCULINO',
+      aniversario: new Date('1990-05-15T12:00:00Z'),
+      criarFamiliaAutomatica: true,
+      tipoRelacao: 'OUTRO',
+    });
+
+    component.submitForm();
+
+    expect(createFamiliaSpy).toHaveBeenCalledWith({ nome: 'Família João Silva' });
+    expect(addMemberSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nome: 'João Silva',
+        email: 'joao@silva.com',
+        genero: 'MASCULINO',
+        tipoRelacao: [{ familiaId: 99, tipoRelacao: 'OUTRO' }],
       })
     );
   });
