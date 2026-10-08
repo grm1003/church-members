@@ -1,0 +1,198 @@
+<section class="space-y-6">
+  <!-- Cabeçalho -->
+  <div class="flex flex-col gap-1">
+    <h2 class="text-2xl font-bold tracking-tight text-slate-900">Estatísticas de Membros</h2>
+    <p class="text-sm text-slate-500">
+      Acompanhe o consolidado de membros cadastrados e analise a distribuição por gênero e faixa etária.
+    </p>
+  </div>
+
+  <!-- Cards de Indicadores Gerais -->
+  <nz-spin [nzSpinning]="isLoadingStats">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <!-- Total Geral -->
+      <nz-card class="rounded-xl border border-slate-200 shadow-sm transition hover:shadow-md">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total de Membros</span>
+            <div class="mt-1 text-3xl font-extrabold text-slate-900">{{ stats.total }}</div>
+          </div>
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+            <i nz-icon nzType="team" class="text-2xl"></i>
+          </div>
+        </div>
+      </nz-card>
+
+      <!-- Total Masculino -->
+      <nz-card class="rounded-xl border border-slate-200 shadow-sm transition hover:shadow-md">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Masculino</span>
+            <div class="mt-1 text-3xl font-extrabold text-blue-700">{{ stats.totalMasculino }}</div>
+          </div>
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+            <i nz-icon nzType="user" class="text-2xl"></i>
+          </div>
+        </div>
+      </nz-card>
+
+      <!-- Total Feminino -->
+      <nz-card class="rounded-xl border border-slate-200 shadow-sm transition hover:shadow-md">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Feminino</span>
+            <div class="mt-1 text-3xl font-extrabold text-pink-700">{{ stats.totalFeminino }}</div>
+          </div>
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-pink-50 text-pink-600">
+            <i nz-icon nzType="user" class="text-2xl"></i>
+          </div>
+        </div>
+      </nz-card>
+    </div>
+  </nz-spin>
+
+  <!-- Filtro por Faixa Etária e Gênero -->
+  <nz-card class="rounded-xl border border-slate-200 shadow-sm">
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <i nz-icon nzType="filter" class="text-slate-600"></i>
+          <h3 class="text-base font-semibold text-slate-800">Filtrar por Faixa Etária</h3>
+        </div>
+        <button
+          nz-button
+          nzType="default"
+          nzSize="small"
+          (click)="carregarEstatisticas()"
+          [nzLoading]="isLoadingStats"
+          title="Recarregar métricas gerais"
+        >
+          <i nz-icon nzType="reload"></i>
+          <span>Atualizar Métricas</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+        <!-- Filtro Gênero -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-slate-700">Gênero</label>
+          <nz-select [(ngModel)]="generoFilter" class="w-full">
+            <nz-option nzValue="TODOS" nzLabel="Todos os Gêneros"></nz-option>
+            <nz-option nzValue="MASCULINO" nzLabel="Masculino"></nz-option>
+            <nz-option nzValue="FEMININO" nzLabel="Feminino"></nz-option>
+          </nz-select>
+        </div>
+
+        <!-- Idade Mínima -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-slate-700">Idade Inicial (anos)</label>
+          <nz-input-number
+            [(ngModel)]="minIdade"
+            [nzMin]="0"
+            [nzMax]="130"
+            [nzStep]="1"
+            nzPlaceHolder="Ex.: 18"
+            class="w-full"
+          ></nz-input-number>
+        </div>
+
+        <!-- Idade Máxima -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-slate-700">Idade Final (anos)</label>
+          <nz-input-number
+            [(ngModel)]="maxIdade"
+            [nzMin]="0"
+            [nzMax]="130"
+            [nzStep]="1"
+            nzPlaceHolder="Ex.: 35"
+            class="w-full"
+          ></nz-input-number>
+        </div>
+
+        <!-- Ações do Filtro -->
+        <div class="flex items-end gap-2">
+          <button
+            nz-button
+            nzType="primary"
+            (click)="aplicarFiltro()"
+            [nzLoading]="isLoadingTable"
+            class="flex flex-1 items-center justify-center gap-1.5"
+          >
+            <i nz-icon nzType="filter"></i>
+            <span>Filtrar</span>
+          </button>
+          <button
+            nz-button
+            nzType="default"
+            (click)="limparFiltros()"
+            [disabled]="isLoadingTable"
+            title="Limpar todos os filtros"
+            class="flex items-center justify-center"
+          >
+            <i nz-icon nzType="reload"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nz-card>
+
+  <!-- Tabela de Membros com Total Encontrado -->
+  <nz-card class="rounded-xl border border-slate-200 shadow-sm">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+      <div>
+        <h3 class="text-base font-semibold text-slate-800">Resultado da Consulta</h3>
+        <span class="text-xs text-slate-500">Membros correspondentes aos critérios selecionados</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-medium text-slate-700">Total encontrado:</span>
+        <nz-tag [nzColor]="filteredTotal > 0 ? 'blue' : 'default'" class="px-2.5 py-0.5 text-sm font-bold">
+          {{ filteredTotal }} membro(s)
+        </nz-tag>
+      </div>
+    </div>
+
+    <nz-table
+      #membrosTable
+      [nzData]="membros"
+      [nzLoading]="isLoadingTable"
+      [nzPageSize]="10"
+      [nzShowPagination]="true"
+      nzTableLayout="fixed"
+    >
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th nzWidth="140px">Gênero</th>
+          <th nzWidth="180px">Data de Nascimento</th>
+          <th nzWidth="120px">Idade</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (membro of membrosTable.data; track membro.id) {
+          <tr>
+            <td class="font-medium text-slate-900">{{ membro.nome }}</td>
+            <td>
+              @if (membro.genero === 'MASCULINO') {
+                <nz-tag nzColor="blue">Masculino</nz-tag>
+              } @else if (membro.genero === 'FEMININO') {
+                <nz-tag nzColor="magenta">Feminino</nz-tag>
+              } @else {
+                <nz-tag>{{ membro.genero || '-' }}</nz-tag>
+              }
+            </td>
+            <td class="text-slate-600">
+              {{ membro.dataNascimento ? (membro.dataNascimento | date: 'dd/MM/yyyy') : '-' }}
+            </td>
+            <td>
+              @if (membro.idade !== null && membro.idade !== undefined) {
+                <span class="font-semibold text-slate-800">{{ membro.idade }} anos</span>
+              } @else {
+                <span class="text-slate-400">-</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </nz-table>
+  </nz-card>
+</section>

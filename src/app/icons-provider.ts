@@ -24,6 +24,8 @@ import {
   EyeOutline,
   CloudSyncOutline,
   ArrowLeftOutline,
+  BarChartOutline,
+  FilterOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const icons = [
@@ -52,6 +54,8 @@ export const icons = [
   EyeOutline,
   CloudSyncOutline,
   ArrowLeftOutline,
+  BarChartOutline,
+  FilterOutline,
 ];
 
 
