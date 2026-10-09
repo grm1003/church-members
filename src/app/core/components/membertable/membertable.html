@@ -20,43 +20,29 @@
       <button
         nz-button
         nzType="default"
-        (click)="exportCsv()"
-        [nzLoading]="isExportingCsv"
-        class="whitespace-nowrap flex items-center gap-1"
-        title="Baixar dados em CSV pelo navegador"
+        (click)="exportExcel()"
+        [nzLoading]="isExportingExcel"
+        class="whitespace-nowrap flex items-center gap-1 !border-emerald-600 !text-emerald-700 hover:!bg-emerald-50"
+        title="Baixar planilha de membros em formato Excel (.xlsx)"
       >
-        <i nz-icon nzType="download" nzTheme="outline"></i>
-        <span class="hidden sm:inline">Exportar CSV</span>
-        <span class="sm:hidden">Exportar</span>
-      </button>
-
-      <button
-        nz-button
-        nzType="default"
-        (click)="exportCsvToDownloads()"
-        [nzLoading]="isExportingDownloads"
-        class="whitespace-nowrap flex items-center gap-1 !border-blue-500 !text-blue-600 hover:!bg-blue-50"
-        title="Salvar membros.csv diretamente na pasta Downloads do Windows"
-      >
-        <i nz-icon nzType="folder-open" nzTheme="outline"></i>
-        <span class="hidden sm:inline">Salvar em Downloads</span>
-        <span class="sm:hidden">Downloads</span>
+        <i nz-icon nzType="file-excel" nzTheme="outline"></i>
+        <span class="hidden sm:inline">Exportar Excel (.xlsx)</span>
+        <span class="sm:hidden">Excel</span>
       </button>
 
       <button
         nz-button
         nzType="primary"
         (click)="openCsvModal()"
-        class="whitespace-nowrap flex items-center gap-1"
-        title="Importar membros via CSV"
+        class="whitespace-nowrap flex items-center gap-1 bg-blue-600"
+        title="Importar ou exportar planilha Excel de membros"
       >
         <i nz-icon nzType="upload" nzTheme="outline"></i>
-        <span class="hidden sm:inline">Importar CSV</span>
+        <span class="hidden sm:inline">Importar Planilha</span>
         <span class="sm:hidden">Importar</span>
       </button>
     </div>
   </div>
-
 
   <!-- Table Container -->
   <div class="w-full overflow-x-auto overflow-y-auto px-2 sm:px-4 flex-1">
@@ -74,7 +60,7 @@
       <thead class="bg-[#001529] text-white">
         <tr>
           <th 
-            nzWidth="20%" 
+            nzWidth="22%" 
             [nzSortOrder]="nomeColumn.sortOrder"
             [nzSortFn]="nomeColumn.sortFn"
             [nzSortDirections]="nomeColumn.sortDirections"
@@ -83,7 +69,7 @@
             Nome
           </th>
           <th 
-            nzWidth="25%" 
+            nzWidth="20%" 
             [nzSortOrder]="emailColumn.sortOrder"
             [nzSortFn]="emailColumn.sortFn"
             [nzSortDirections]="emailColumn.sortDirections"
@@ -92,37 +78,58 @@
             Email
           </th>
           <th 
-            nzWidth="18%" 
+            nzWidth="15%" 
             [nzSortOrder]="aniversarioColumn.sortOrder"
             [nzSortFn]="aniversarioColumn.sortFn"
             [nzSortDirections]="aniversarioColumn.sortDirections"
             class="font-semibold whitespace-nowrap"
           >
-            Aniversário
+            Nascimento
           </th>
-          <th nzWidth="37%" class="whitespace-nowrap">Ações</th>
+          <th nzWidth="43%" class="whitespace-nowrap">Ações</th>
         </tr>
       </thead>
       <tbody>
         @for (member of filterTable.data; track (member.id ?? member.nome)) {
           <tr>
-            <td class="whitespace-nowrap text-xs sm:text-sm">{{ member.nome.split(' ')[0] }}<span class="hidden sm:inline"> {{ member.nome.split(' ').slice(1).join(' ') }}</span></td>
-            <td class="whitespace-nowrap overflow-hidden text-ellipsis text-xs sm:text-sm">
-              <span class="italic text-blue-600">{{ member.email || '-' }}</span>
+            <td class="whitespace-nowrap text-xs sm:text-sm font-medium text-slate-800">
+              {{ member.nome }}
             </td>
-            <td class="whitespace-nowrap text-xs sm:text-sm">{{ member.aniversario | date: 'dd/MM/yyyy' }}</td>
+            <td class="whitespace-nowrap overflow-hidden text-ellipsis text-xs sm:text-sm">
+              <span class="italic text-slate-600">{{ member.email || '-' }}</span>
+            </td>
             <td class="whitespace-nowrap text-xs sm:text-sm">
+              {{ (member.aniversario || member.data) | date: 'dd/MM/yyyy' }}
+            </td>
+            <td class="whitespace-nowrap text-xs sm:text-sm">
+                <!-- Botão Ver Ficha do Membro -->
                 <button
                   type="button"
-                  class="text-blue-600 hover:text-blue-800 cursor-pointer bg-transparent p-0 border-0 inline-flex items-center gap-1 truncate max-w-[120px] sm:max-w-none font-medium"
+                  class="text-emerald-700 hover:text-emerald-900 cursor-pointer bg-transparent p-0 border-0 inline-flex items-center gap-1 font-semibold"
+                  (click)="openFichaModal(member)"
+                  [title]="'Ver ficha cadastral completa de ' + member.nome"
+                >
+                  <i nz-icon nzType="idcard" nzTheme="outline"></i>
+                  <span>Ver Ficha</span>
+                </button>
+
+                <nz-divider nzType="vertical"></nz-divider>
+
+                <!-- Botão Família (Mantido conforme solicitado) -->
+                <button
+                  type="button"
+                  class="text-blue-600 hover:text-blue-800 cursor-pointer bg-transparent p-0 border-0 inline-flex items-center gap-1 font-medium"
                   (click)="openFamilyModal(member)"
                   [title]="'Família de ' + member.nome"
                 >
                   <i nz-icon nzType="team" nzTheme="outline"></i>
-                  <span class="hidden sm:inline">Família 一 {{ member.nome.split(' ')[0] }}</span>
+                  <span class="hidden sm:inline">Família</span>
                   <span class="sm:hidden">Fam.</span>
                 </button>
+
                 <nz-divider nzType="vertical"></nz-divider>
+
+                <!-- Botão Excluir -->
                 <a
                   nz-popconfirm
                   nzPopconfirmTitle="Deseja realmente excluir o membro '{{ member.nome }}' (ID: {{ member.id }})?"
@@ -130,7 +137,7 @@
                   nzCancelText="Cancelar"
                   nzOkDanger="true"
                   (nzOnConfirm)="deleteMemberDirect(member)"
-                  class="text-red-600 hover:text-red-800 cursor-pointer inline-flex items-center gap-0.5"
+                  class="text-red-600 hover:text-red-800 cursor-pointer inline-flex items-center gap-0.5 font-medium"
                   title="Excluir membro"
                 >
                   <i nz-icon nzType="delete" nzTheme="outline"></i>
@@ -145,6 +152,138 @@
   </div>
 </div>
 
+<!-- Modal da Ficha do Membro -->
+<nz-modal
+  [(nzVisible)]="isFichaModalVisible"
+  [nzTitle]="'Ficha Cadastral: ' + (selectedFichaMember?.nome || '')"
+  (nzOnCancel)="closeFichaModal()"
+  [nzWidth]="'90vw'"
+  [nzStyle]="{ maxWidth: '750px' }"
+  [nzBodyStyle]="{ 'max-height': '75vh', 'overflow-y': 'auto', 'padding': '20px 24px' }"
+  [nzFooter]="fichaFooter"
+>
+  <ng-container *nzModalContent>
+    @if (selectedFichaMember) {
+      <div class="flex flex-col gap-6 text-sm">
+        <!-- 1. Dados Pessoais & Contato -->
+        <div class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="flex items-center gap-2 border-b border-slate-100 pb-2 mb-3 text-slate-800 font-bold">
+            <i nz-icon nzType="user" class="text-blue-600"></i>
+            <span>1. Dados Pessoais & Contato</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-3 gap-x-4">
+            <div>
+              <span class="text-xs text-slate-500 block">Nome completo:</span>
+              <span class="font-semibold text-slate-800">{{ selectedFichaMember.nome }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-slate-500 block">Data de Nascimento:</span>
+              <span class="font-semibold text-slate-800">{{ ((selectedFichaMember.data || selectedFichaMember.aniversario) | date: 'dd/MM/yyyy') || '-' }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-slate-500 block">Gênero:</span>
+              <span class="font-semibold text-slate-800">{{ selectedFichaMember.genero || '-' }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-slate-500 block">Celular:</span>
+              <span class="font-semibold text-slate-800">{{ selectedFichaMember.celular || '-' }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-slate-500 block">E-mail:</span>
+              <span class="font-semibold text-slate-800 italic">{{ selectedFichaMember.email || '-' }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-slate-500 block">Estado Civil:</span>
+              <span class="font-semibold text-slate-800">{{ selectedFichaMember.estadoCivil || '-' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Endereço -->
+        <div class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="flex items-center gap-2 border-b border-slate-100 pb-2 mb-3 text-slate-800 font-bold">
+            <i nz-icon nzType="environment" class="text-emerald-600"></i>
+            <span>2. Endereço</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-y-3 gap-x-4">
+            <div class="sm:col-span-2">
+              <span class="text-xs text-slate-500 block">Logradouro / Rua:</span>
+              <span class="font-semibold text-slate-800">{{ selectedFichaMember.endereco || '-' }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-slate-500 block">Número:</span>
+              <span class="font-semibold text-slate-800">{{ selectedFichaMember.numero || '-' }}</span>
+            </div>
+            <div class="sm:col-span-3">
+              <span class="text-xs text-slate-500 block">Bairro:</span>
+              <span class="font-semibold text-slate-800">{{ selectedFichaMember.bairro || '-' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Família & Vínculos -->
+        <div class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-3">
+            <div class="flex items-center gap-2 text-slate-800 font-bold">
+              <i nz-icon nzType="team" class="text-indigo-600"></i>
+              <span>3. Vínculos Familiares</span>
+            </div>
+            <button
+              nz-button
+              nzType="primary"
+              nzSize="small"
+              class="flex items-center gap-1 bg-indigo-600"
+              (click)="openFamilyModal(selectedFichaMember)"
+            >
+              <i nz-icon nzType="team" nzTheme="outline"></i>
+              Ver Toda Família
+            </button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4">
+            <div>
+              <span class="text-xs text-slate-500 block">Filiação (Pai ou Mãe):</span>
+              <span class="font-semibold text-slate-800">{{ selectedFichaMember.filiacao || '-' }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-slate-500 block">Cônjuge:</span>
+              <span class="font-semibold text-slate-800">{{ selectedFichaMember.conjuge || '-' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Dados Eclesiásticos -->
+        <div class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="flex items-center gap-2 border-b border-slate-100 pb-2 mb-3 text-slate-800 font-bold">
+            <i nz-icon nzType="schedule" class="text-amber-600"></i>
+            <span>4. Dados Eclesiásticos</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-y-3 gap-x-4">
+            <div>
+              <span class="text-xs text-slate-500 block">Recebido por:</span>
+              <span class="font-semibold text-slate-800">{{ selectedFichaMember.recebidoPor || '-' }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-slate-500 block">Data de Recebimento:</span>
+              <span class="font-semibold text-slate-800">{{ (selectedFichaMember.dataRecebimento | date: 'dd/MM/yyyy') || '-' }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-slate-500 block">Meio de Recepção:</span>
+              <span class="font-semibold text-slate-800">{{ selectedFichaMember.meioRecepcao || '-' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </ng-container>
+
+  <ng-template #fichaFooter>
+    <div class="flex items-center justify-end">
+      <button nz-button nzType="default" (click)="closeFichaModal()">Fechar Ficha</button>
+    </div>
+  </ng-template>
+</nz-modal>
+
+<!-- Modal de Família -->
 <nz-modal
   [(nzVisible)]="isFamilyModalVisible"
   [nzTitle]="familyModalTitle"
@@ -213,6 +352,5 @@
   </ng-container>
 </nz-modal>
 
+<!-- Modal de Planilha / Upload -->
 <app-csv-modal [(isVisible)]="isCsvModalVisible"></app-csv-modal>
-
-

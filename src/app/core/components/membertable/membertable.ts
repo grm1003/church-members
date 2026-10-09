@@ -5,11 +5,11 @@ import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { NzTableModule, NzTableSortFn, NzTableSortOrder } from 'ng-zorro-antd/table';
-import { catchError, finalize, forkJoin, map, of } from 'rxjs';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzTableModule, NzTableSortFn, NzTableSortOrder } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { catchError, finalize, forkJoin, map, of } from 'rxjs';
 import { Familia, Member, MemberRelacao } from '../../models/Member';
 import { FamiliasApiService } from '../../services/familias-api.service';
 import { GetMembers } from '../../services/get-members';
@@ -49,7 +49,7 @@ interface ColumnItem {
   templateUrl: './membertable.html',
   styleUrl: './membertable.css',
 })
-export class Membertable {
+export class Membertable implements OnChanges {
   @Input() tableName: string = 'Tabela';
   @Input() tableData: Member[] = [];
   @Input() isLoading: boolean = false;
@@ -61,15 +61,17 @@ export class Membertable {
   private readonly cdr = inject(ChangeDetectorRef);
 
   isFamilyModalVisible = false;
+  isFichaModalVisible = false;
   isCsvModalVisible = false;
-  isExportingCsv = false;
-  isExportingDownloads = false;
+  isExportingExcel = false;
   familyModalTitle = 'Família do membro';
   currentSelectedMember: Member | null = null;
+  selectedFichaMember: Member | null = null;
   familyGroups: MemberFamilyGroup[] = [];
   isLoadingFamilyMembers = false;
   selectedDate: Date | null = null;
   filteredData: Member[] = [];
+
   readonly nomeColumn: ColumnItem = {
     name: 'Nome',
     sortOrder: null,
@@ -87,9 +89,13 @@ export class Membertable {
   readonly aniversarioColumn: ColumnItem = {
     name: 'Aniversario',
     sortOrder: null,
-    sortFn: (a: Member, b: Member) => this.compareBirthdayByReference(a.aniversario, b.aniversario),
+    sortFn: (a: Member, b: Member) => this.compareBirthdayByReference(a.aniversario || a.data, b.aniversario || b.data),
     sortDirections: ['ascend', 'descend', null],
   };
+
+  constructor() {
+    this.filteredData = [...this.tableData];
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['tableData'] || changes['isLoading']) {
@@ -113,17 +119,17 @@ export class Membertable {
       return;
     }
 
-    // Mantem todos os registros e ordena pela proxima ocorrencia de aniversario
-    // considerando apenas dia/mes a partir da data selecionada.
     this.filteredData = [...this.tableData].sort((a, b) => {
-      const distanceA = this.getDistanceFromReference(a.aniversario);
-      const distanceB = this.getDistanceFromReference(b.aniversario);
+      const dateA = a.aniversario || a.data || '';
+      const dateB = b.aniversario || b.data || '';
+      const distanceA = this.getDistanceFromReference(dateA);
+      const distanceB = this.getDistanceFromReference(dateB);
 
       if (distanceA !== distanceB) {
         return distanceA - distanceB;
       }
 
-      return this.getBirthdaySortKey(a.aniversario) - this.getBirthdaySortKey(b.aniversario);
+      return this.getBirthdaySortKey(dateA) - this.getBirthdaySortKey(dateB);
     });
   }
 
@@ -172,10 +178,6 @@ export class Membertable {
     return this.getBirthdaySortKey(aDate) - this.getBirthdaySortKey(bDate);
   }
 
-  constructor() {
-    this.filteredData = [...this.tableData];
-  }
-
   clearDateFilter(): void {
     this.selectedDate = null;
     this.applyBirthdayFilter();
@@ -190,6 +192,18 @@ export class Membertable {
   resetFilters(): void {
     this.clearDateFilter();
     this.resetSort();
+  }
+
+  openFichaModal(member: Member): void {
+    this.selectedFichaMember = member;
+    this.isFichaModalVisible = true;
+    this.cdr.markForCheck();
+  }
+
+  closeFichaModal(): void {
+    this.isFichaModalVisible = false;
+    this.selectedFichaMember = null;
+    this.cdr.markForCheck();
   }
 
   openFamilyModal(member: Member): void {
@@ -322,42 +336,30 @@ export class Membertable {
     this.isCsvModalVisible = false;
   }
 
-  exportCsv(): void {
-    this.isExportingCsv = true;
-    this.membersApiService.exportMembersCsv().subscribe({
+  exportExcel(): void {
+    this.isExportingExcel = true;
+    this.cdr.markForCheck();
+    this.membersApiService.exportMembersExcel().pipe(
+      finalize(() => {
+        this.isExportingExcel = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
       next: (blob) => {
-        this.isExportingCsv = false;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'membros.csv';
+        a.download = 'membros.xlsx';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        this.message.success('Lista de membros exportada em CSV com sucesso!');
+        this.message.success('Planilha Excel de membros exportada com sucesso!');
       },
       error: (error) => {
-        this.isExportingCsv = false;
-        this.message.error('Erro ao exportar membros para CSV.');
-        console.error(error);
-      },
-    });
-  }
-
-  exportCsvToDownloads(): void {
-    this.isExportingDownloads = true;
-    this.membersApiService.exportMembersCsvToDownloads().subscribe({
-      next: (res) => {
-        this.isExportingDownloads = false;
-        this.message.success(res.mensagem || 'Arquivo salvo com sucesso na pasta Downloads!');
-      },
-      error: (error) => {
-        this.isExportingDownloads = false;
-        this.message.error('Erro ao salvar CSV na pasta Downloads.');
+        this.message.error('Erro ao exportar membros para Excel.');
         console.error(error);
       },
     });
   }
 }
-

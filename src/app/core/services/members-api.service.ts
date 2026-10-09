@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
 import { Familia, Member, MemberImportResponseDto, MemberSaveDto } from '../models/Member';
 
@@ -29,7 +29,7 @@ export class MembersApiService {
             familia: familiaNames,
             familiaId: familiaIds,
             relacoes,
-            tipoRelacao: relacoes[0]?.tipoRelacao ?? 'OUTRO',
+            tipoRelacao: relacoes[0]?.tipoRelacao ?? 'FILIADO',
           };
         })
       ),
@@ -60,17 +60,14 @@ export class MembersApiService {
     return this.http.delete<void>(`${this.baseUrl}/members/${id}`);
   }
 
-  exportMembersCsv(): Observable<Blob> {
-    return this.http.get(`${this.baseUrl}/members/export/csv`, {
+  exportMembersExcel(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/members/export/excel`, {
       responseType: 'blob',
     });
   }
 
-  exportMembersCsvToDownloads(): Observable<{ sucesso: boolean; caminho: string; mensagem: string }> {
-    return this.http.post<{ sucesso: boolean; caminho: string; mensagem: string }>(
-      `${this.baseUrl}/members/export/csv/downloads`,
-      {}
-    );
+  exportMembersCsv(): Observable<Blob> {
+    return this.exportMembersExcel();
   }
 
   backupDatabase(): Observable<{ sucesso: boolean; caminho: string; mensagem: string }> {
@@ -80,10 +77,14 @@ export class MembersApiService {
     );
   }
 
-  importMembersCsv(file: File): Observable<MemberImportResponseDto> {
+  importMembersExcel(file: File): Observable<MemberImportResponseDto> {
     const formData = new FormData();
     formData.append('file', file, file.name);
-    return this.http.post<MemberImportResponseDto>(`${this.baseUrl}/members/import/csv`, formData);
+    return this.http.post<MemberImportResponseDto>(`${this.baseUrl}/members/import/excel`, formData);
+  }
+
+  importMembersCsv(file: File): Observable<MemberImportResponseDto> {
+    return this.importMembersExcel(file);
   }
 
   listMembersWithFamilies(): Observable<Member[]> {

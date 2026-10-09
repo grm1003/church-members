@@ -31,7 +31,7 @@ describe('FormUserComponent', () => {
 
     familiasService = TestBed.inject(FamiliasApiService);
     vi.spyOn(familiasService, 'listFamilias').mockReturnValue(of([{ id: 1, nome: 'Família Teste' }]));
-    vi.spyOn(familiasService, 'listRelacoes').mockReturnValue(of([{ valor: 'PAI', descricao: 'Pai' }]));
+    vi.spyOn(familiasService, 'listRelacoes').mockReturnValue(of([{ valor: 'FILIADO', descricao: 'Filiado' }]));
 
     fixture = TestBed.createComponent(FormUser);
     component = fixture.componentInstance;
@@ -46,13 +46,13 @@ describe('FormUserComponent', () => {
   });
 
   it('should invalidate form when genero is not selected', () => {
-    component.validateForm.setValue({
+    component.validateForm.patchValue({
       nome: 'João Silva',
       email: 'joao@silva.com',
       genero: null,
       aniversario: new Date('1990-05-15T12:00:00Z'),
       familiaId: [1],
-      tipoRelacao: 'PAI',
+      tipoRelacao: 'FILIADO',
     });
 
     expect(component.validateForm.invalid).toBe(true);
@@ -63,13 +63,13 @@ describe('FormUserComponent', () => {
     const getMembersService = TestBed.inject(GetMembers);
     const addMemberSpy = vi.spyOn(getMembersService, 'addMember').mockReturnValue(of('OK'));
 
-    component.validateForm.setValue({
+    component.validateForm.patchValue({
       nome: 'João Silva',
       email: 'joao@silva.com',
       genero: 'MASCULINO',
       aniversario: new Date('1990-05-15T12:00:00Z'),
       familiaId: [1],
-      tipoRelacao: 'PAI',
+      tipoRelacao: 'FILIADO',
     });
 
     component.submitForm();
@@ -79,7 +79,7 @@ describe('FormUserComponent', () => {
         nome: 'João Silva',
         email: 'joao@silva.com',
         genero: 'MASCULINO',
-        tipoRelacao: [{ familiaId: 1, tipoRelacao: 'PAI' }],
+        tipoRelacao: [{ familiaId: 1, tipoRelacao: 'FILIADO' }],
       })
     );
   });

@@ -1,29 +1,4 @@
-export type RelacaoFamilia =
-  | 'PAI'
-  | 'MAE'
-  | 'FILHO'
-  | 'FILHA'
-  | 'IRMAO'
-  | 'IRMA'
-  | 'ESPOSO'
-  | 'ESPOSA'
-  | 'AVÔ'
-  | 'AVÓ'
-  | 'NETO'
-  | 'NETA'
-  | 'TIO'
-  | 'TIA'
-  | 'SOBRINHO'
-  | 'SOBRINHA'
-  | 'PRIMO'
-  | 'PRIMA'
-  | 'CUNHADO'
-  | 'CUNHADA'
-  | 'SOGRO'
-  | 'SOGRA'
-  | 'GENRO'
-  | 'NORA'
-  | 'OUTRO';
+export type RelacaoFamilia = 'FILIADO' | 'CONJUGE';
 
 export type Genero = 'MASCULINO' | 'FEMININO';
 
@@ -37,10 +12,20 @@ export interface Member {
   nome: string;
   email?: string | null;
   data: string;
-  aniversario: string;
+  aniversario?: string;
   genero?: Genero;
+  endereco?: string;
+  numero?: string;
+  bairro?: string;
+  celular?: string;
+  estadoCivil?: string;
+  filiacao?: string;
+  conjuge?: string;
+  recebidoPor?: string;
+  dataRecebimento?: string;
+  meioRecepcao?: string;
   familiaId?: number[];
-  familia: string[];
+  familia?: string[];
   relacoes?: MemberRelacao[];
   tipoRelacao?: RelacaoFamilia;
 }
@@ -50,6 +35,16 @@ export interface MemberSaveDto {
   email?: string | null;
   data: string;
   genero: Genero;
+  endereco?: string;
+  numero?: string;
+  bairro?: string;
+  celular?: string;
+  estadoCivil?: string;
+  filiacao?: string;
+  conjuge?: string;
+  recebidoPor?: string;
+  dataRecebimento?: string;
+  meioRecepcao?: string;
   tipoRelacao?: RelacaoDto[];
 }
 
@@ -78,4 +73,3 @@ export interface MemberRelacao {
   nomeMembro: string;
   tipoRelacao: RelacaoFamilia;
 }
-

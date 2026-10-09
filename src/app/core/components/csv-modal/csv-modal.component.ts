@@ -45,22 +45,24 @@ export class CsvModalComponent {
   selectedFile: File | null = null;
   isProcessing = false;
   isExporting = false;
-  isExportingDownloads = false;
   importResult: MemberImportResponseDto | null = null;
 
   beforeUpload = (file: NzUploadFile): boolean => {
     const rawFile = file as unknown as File;
-    const isCsv = file.name.toLowerCase().endsWith('.csv');
+    const isAccepted =
+      file.name.toLowerCase().endsWith('.xlsx') ||
+      file.name.toLowerCase().endsWith('.xls') ||
+      file.name.toLowerCase().endsWith('.csv');
 
-    if (!isCsv) {
-      this.message.error('Por favor, selecione apenas arquivos com extensão .csv');
+    if (!isAccepted) {
+      this.message.error('Por favor, selecione um arquivo válido (.xlsx ou .csv)');
       return false;
     }
 
     this.selectedFile = rawFile;
     this.fileList = [file];
     this.importResult = null;
-    return false; // Evita upload automático pelo componente nz-upload
+    return false;
   };
 
   handleRemove = (): boolean => {
@@ -77,7 +79,7 @@ export class CsvModalComponent {
 
   processImport(): void {
     if (!this.selectedFile) {
-      this.message.warning('Nenhum arquivo CSV selecionado.');
+      this.message.warning('Nenhum arquivo Excel selecionado.');
       return;
     }
 
@@ -86,7 +88,7 @@ export class CsvModalComponent {
     this.cdr.markForCheck();
 
     this.membersApiService
-      .importMembersCsv(this.selectedFile)
+      .importMembersExcel(this.selectedFile)
       .pipe(
         finalize(() => {
           this.isProcessing = false;
@@ -109,31 +111,11 @@ export class CsvModalComponent {
           this.cdr.markForCheck();
         },
         error: (error) => {
-          const msg = error?.error?.message || error?.message || 'Falha ao importar arquivo CSV.';
+          const msg = error?.error?.message || error?.message || 'Falha ao importar planilha Excel.';
           this.message.error(`Erro na importação: ${msg}`);
           this.cdr.markForCheck();
         },
       });
-  }
-
-  downloadTemplate(): void {
-    const header = 'email;nome;data_nascimento;nome_familia;relacao\n';
-    const example1 = 'joao.silva@exemplo.com;João da Silva;15/04/1988;Silva;PAI\n';
-    const example2 = 'maria.silva@exemplo.com;Maria da Silva;20/08/1990;Silva;MAE\n';
-    const example3 = 'pedro.silva@exemplo.com;Pedro da Silva;10/12/2015;Silva;FILHO\n';
-    const content = '\uFEFF' + header + example1 + example2 + example3;
-
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'modelo_importacao_membros.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    this.message.info('Download do modelo CSV iniciado.');
   }
 
   exportCurrentMembers(): void {
@@ -141,7 +123,7 @@ export class CsvModalComponent {
     this.cdr.markForCheck();
 
     this.membersApiService
-      .exportMembersCsv()
+      .exportMembersExcel()
       .pipe(
         finalize(() => {
           this.isExporting = false;
@@ -153,41 +135,16 @@ export class CsvModalComponent {
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = 'membros.csv';
+          a.download = 'membros.xlsx';
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
-          this.message.success('Lista de membros exportada com sucesso!');
+          this.message.success('Planilha de membros exportada com sucesso!');
           this.cdr.markForCheck();
         },
         error: (error) => {
-          this.message.error('Erro ao exportar membros para CSV.');
-          console.error(error);
-          this.cdr.markForCheck();
-        },
-      });
-  }
-
-  exportToDownloads(): void {
-    this.isExportingDownloads = true;
-    this.cdr.markForCheck();
-
-    this.membersApiService
-      .exportMembersCsvToDownloads()
-      .pipe(
-        finalize(() => {
-          this.isExportingDownloads = false;
-          this.cdr.markForCheck();
-        })
-      )
-      .subscribe({
-        next: (res) => {
-          this.message.success(res.mensagem || 'Arquivo salvo na pasta Downloads!');
-          this.cdr.markForCheck();
-        },
-        error: (error) => {
-          this.message.error('Erro ao salvar CSV na pasta Downloads.');
+          this.message.error('Erro ao exportar membros para Excel.');
           console.error(error);
           this.cdr.markForCheck();
         },
