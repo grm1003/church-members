@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -32,6 +33,7 @@ function optionalEmailValidator(control: AbstractControl): ValidationErrors | nu
 
 @Component({
   selector: 'app-form-user',
+  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
@@ -43,6 +45,7 @@ function optionalEmailValidator(control: AbstractControl): ValidationErrors | nu
     NzRadioModule,
     NzSelectModule,
     NzIconModule,
+    NzDividerModule,
   ],
   templateUrl: './form-user.component.html',
   styleUrl: './form-user.component.css',
@@ -60,23 +63,32 @@ export class FormUser implements OnInit {
     email: this.fb.control<string | null>('', [optionalEmailValidator]),
     genero: this.fb.control<Member['genero'] | null>(null, [Validators.required]),
     aniversario: this.fb.control<Date | null>(null, [Validators.required]),
+    celular: this.fb.control<string>(''),
+    estadoCivil: this.fb.control<string>(''),
+    endereco: this.fb.control<string>(''),
+    numero: this.fb.control<string>(''),
+    bairro: this.fb.control<string>(''),
+    filiacao: this.fb.control<string>(''),
+    conjuge: this.fb.control<string>(''),
+    recebidoPor: this.fb.control<string>(''),
+    dataRecebimento: this.fb.control<Date | null>(null),
+    meioRecepcao: this.fb.control<string>(''),
     familiaId: this.fb.nonNullable.control<number[]>([]),
-    tipoRelacao: this.fb.nonNullable.control<Member['tipoRelacao']>('OUTRO'),
+    tipoRelacao: this.fb.nonNullable.control<Member['tipoRelacao']>('FILIADO'),
   });
 
   familyOptions: Familia[] = [];
   relationOptions: RelacaoFamiliaOption[] = [];
   isSubmitting = false;
 
-  // Mensagens automaticas para erros de validacao.
   autoTips: Record<string, Record<string, string>> = {
     'pt-br': {
-      required: 'Campo obrigatorio',
-      email: 'E-mail invalido',
+      required: 'Campo obrigatório',
+      email: 'E-mail inválido',
     },
     default: {
-      required: 'Campo obrigatorio',
-      email: 'E-mail invalido',
+      required: 'Campo obrigatório',
+      email: 'E-mail inválido',
     },
   };
 
@@ -94,7 +106,7 @@ export class FormUser implements OnInit {
         this.cdr.markForCheck();
       },
       error: (error: unknown) => {
-        console.warn('Erro ao carregar familias:', error);
+        console.warn('Erro ao carregar famílias:', error);
         this.cdr.markForCheck();
       },
     });
@@ -107,7 +119,7 @@ export class FormUser implements OnInit {
         this.cdr.markForCheck();
       },
       error: (error: unknown) => {
-        console.warn('Erro ao carregar relacoes:', error);
+        console.warn('Erro ao carregar relações:', error);
         this.cdr.markForCheck();
       },
     });
@@ -126,7 +138,7 @@ export class FormUser implements OnInit {
 
     const formValue = this.validateForm.getRawValue();
     const familiaIds: number[] = formValue.familiaId ?? [];
-    const tipoRelacao = formValue.tipoRelacao || 'OUTRO';
+    const tipoRelacao = formValue.tipoRelacao || 'FILIADO';
 
     const relacoesList = familiaIds.map((id) => ({
       familiaId: id,
@@ -139,6 +151,16 @@ export class FormUser implements OnInit {
       email: emailVal.length > 0 ? emailVal : undefined,
       genero: formValue.genero as NonNullable<Member['genero']>,
       data: this.formatDate(formValue.aniversario as Date),
+      celular: formValue.celular?.trim() || undefined,
+      estadoCivil: formValue.estadoCivil?.trim() || undefined,
+      endereco: formValue.endereco?.trim() || undefined,
+      numero: formValue.numero?.trim() || undefined,
+      bairro: formValue.bairro?.trim() || undefined,
+      filiacao: formValue.filiacao?.trim() || undefined,
+      conjuge: formValue.conjuge?.trim() || undefined,
+      recebidoPor: formValue.recebidoPor?.trim() || undefined,
+      dataRecebimento: formValue.dataRecebimento ? this.formatDate(formValue.dataRecebimento) : undefined,
+      meioRecepcao: formValue.meioRecepcao?.trim() || undefined,
       tipoRelacao: relacoesList,
     };
 
@@ -150,7 +172,7 @@ export class FormUser implements OnInit {
         this.isSubmitting = false;
         this.message.success(`Membro "${payload.nome}" cadastrado com sucesso!`);
         this.validateForm.reset();
-        this.validateForm.patchValue({ tipoRelacao: 'OUTRO', familiaId: [], genero: null });
+        this.validateForm.patchValue({ tipoRelacao: 'FILIADO', familiaId: [], genero: null });
         this.cdr.markForCheck();
         this.router.navigateByUrl('/home');
       },
@@ -173,4 +195,3 @@ export class FormUser implements OnInit {
     return `${year}-${month}-${day}`;
   }
 }
-

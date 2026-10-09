@@ -28,6 +28,16 @@ export class GetMembers {
       email: member.email && member.email.trim() ? member.email.trim() : undefined,
       genero: member.genero,
       data: member.data.trim(),
+      endereco: member.endereco?.trim() || undefined,
+      numero: member.numero?.trim() || undefined,
+      bairro: member.bairro?.trim() || undefined,
+      celular: member.celular?.trim() || undefined,
+      estadoCivil: member.estadoCivil?.trim() || undefined,
+      filiacao: member.filiacao?.trim() || undefined,
+      conjuge: member.conjuge?.trim() || undefined,
+      recebidoPor: member.recebidoPor?.trim() || undefined,
+      dataRecebimento: member.dataRecebimento?.trim() || undefined,
+      meioRecepcao: member.meioRecepcao?.trim() || undefined,
       tipoRelacao: member.tipoRelacao ?? [],
     };
 

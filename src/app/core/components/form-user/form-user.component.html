@@ -1,6 +1,6 @@
-<section class="mx-auto w-full max-w-3xl rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+<section class="mx-auto w-full max-w-4xl rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
   <h2 class="text-2xl font-semibold text-slate-900">Cadastro de Membros</h2>
-  <p class="mt-2 text-sm text-slate-700">Preencha os dados do membro (o e-mail é opcional).</p>
+  <p class="mt-2 text-sm text-slate-700">Preencha os dados cadastrais completos do membro.</p>
 
   <form
     nz-form
@@ -9,75 +9,184 @@
     [formGroup]="validateForm"
     (ngSubmit)="submitForm()"
     novalidate
-    class="mt-6 space-y-1"
+    class="mt-6 space-y-4"
   >
-    <nz-form-item>
-      <nz-form-label nzRequired>Nome completo</nz-form-label>
-      <nz-form-control nzErrorTip="Informe o nome completo com no minimo 3 caracteres.">
-        <input nz-input formControlName="nome" placeholder="Ex.: Maria Silva" />
-      </nz-form-control>
-    </nz-form-item>
+    <!-- Seção 1: Dados Pessoais & Contato -->
+    <div class="border-b border-slate-100 pb-2 mb-2">
+      <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500">1. Dados Pessoais & Contato</h3>
+    </div>
 
-    <nz-form-item>
-      <nz-form-label nzRequired>Gênero</nz-form-label>
-      <nz-form-control nzErrorTip="Selecione o gênero do membro.">
-        <nz-radio-group formControlName="genero" class="flex gap-4 pt-1">
-          <label nz-radio nzValue="MASCULINO">Masculino</label>
-          <label nz-radio nzValue="FEMININO">Feminino</label>
-        </nz-radio-group>
-      </nz-form-control>
-    </nz-form-item>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+      <nz-form-item>
+        <nz-form-label nzRequired>Nome completo</nz-form-label>
+        <nz-form-control nzErrorTip="Informe o nome completo com no mínimo 3 caracteres.">
+          <input nz-input formControlName="nome" placeholder="Ex.: Maria Silva" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Gênero</nz-form-label>
+        <nz-form-control nzErrorTip="Selecione o gênero do membro.">
+          <nz-radio-group formControlName="genero" class="flex gap-4 pt-1">
+            <label nz-radio nzValue="MASCULINO">Masculino</label>
+            <label nz-radio nzValue="FEMININO">Feminino</label>
+          </nz-radio-group>
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4">
+      <nz-form-item>
+        <nz-form-label nzRequired>Data de nascimento</nz-form-label>
+        <nz-form-control nzErrorTip="Selecione a data de nascimento.">
+          <nz-date-picker
+            formControlName="aniversario"
+            nzFormat="dd/MM/yyyy"
+            nzPlaceHolder="Selecione a data"
+            [nzDisabledDate]="disableFutureDates"
+            class="w-full"
+          />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Celular</nz-form-label>
+        <nz-form-control>
+          <input nz-input formControlName="celular" placeholder="Ex.: (11) 98765-4321" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Estado Civil</nz-form-label>
+        <nz-form-control>
+          <input nz-input formControlName="estadoCivil" placeholder="Ex.: Casado(a), Solteiro(a)" />
+        </nz-form-control>
+      </nz-form-item>
+    </div>
 
     <nz-form-item>
       <nz-form-label>E-mail (opcional)</nz-form-label>
-      <nz-form-control nzErrorTip="Informe um e-mail válido (ex.: nome@dominio.com) ou deixe em branco.">
-        <input nz-input formControlName="email" type="text" inputmode="email" placeholder="Ex.: maria@email.com (opcional)" />
+      <nz-form-control nzErrorTip="Informe um e-mail válido ou deixe em branco.">
+        <input nz-input formControlName="email" type="text" inputmode="email" placeholder="Ex.: maria@email.com" />
       </nz-form-control>
     </nz-form-item>
 
-    <nz-form-item>
-      <nz-form-label nzRequired>Data de nascimento</nz-form-label>
-      <nz-form-control nzErrorTip="Selecione a data de nascimento.">
-        <nz-date-picker
-          formControlName="aniversario"
-          nzFormat="dd/MM/yyyy"
-          nzPlaceHolder="Selecione a data"
-          [nzDisabledDate]="disableFutureDates"
-          class="w-full"
-        />
-      </nz-form-control>
-    </nz-form-item>
+    <!-- Seção 2: Endereço -->
+    <div class="border-b border-slate-100 pb-2 mb-2 pt-2">
+      <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500">2. Endereço</h3>
+    </div>
 
-    <nz-form-item>
-      <nz-form-label>Família</nz-form-label>
-      <nz-form-control>
-        <nz-select
-          formControlName="familiaId"
-          nzMode="multiple"
-          nzPlaceHolder="Digite para buscar e selecionar familiares"
-          nzShowSearch
-          class="w-full"
-        >
-          @for (family of familyOptions; track family.id) {
-            <nz-option [nzLabel]="family.nome" [nzValue]="family.id"></nz-option>
-          }
-        </nz-select>
-      </nz-form-control>
-    </nz-form-item>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-x-4">
+      <div class="md:col-span-2">
+        <nz-form-item>
+          <nz-form-label>Endereço / Logradouro</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="endereco" placeholder="Ex.: Rua das Flores" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
 
+      <nz-form-item>
+        <nz-form-label>Número</nz-form-label>
+        <nz-form-control>
+          <input nz-input formControlName="numero" placeholder="Ex.: 123" />
+        </nz-form-control>
+      </nz-form-item>
 
-    <nz-form-item>
-      <nz-form-label nzRequired>Relação familiar</nz-form-label>
-      <nz-form-control>
-        <nz-select formControlName="tipoRelacao" nzPlaceHolder="Selecione a relação" class="w-full">
-          @for (relation of relationOptions; track relation.valor) {
-            <nz-option [nzLabel]="relation.descricao" [nzValue]="relation.valor"></nz-option>
-          }
-        </nz-select>
-      </nz-form-control>
-    </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>Bairro</nz-form-label>
+        <nz-form-control>
+          <input nz-input formControlName="bairro" placeholder="Ex.: Centro" />
+        </nz-form-control>
+      </nz-form-item>
+    </div>
 
-    <nz-form-item class="!mb-0 pt-2">
+    <!-- Seção 3: Família & Vínculos -->
+    <div class="border-b border-slate-100 pb-2 mb-2 pt-2">
+      <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500">3. Vínculos Familiares</h3>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+      <nz-form-item>
+        <nz-form-label>Filiação (Pai ou Mãe)</nz-form-label>
+        <nz-form-control>
+          <input nz-input formControlName="filiacao" placeholder="Ex.: José da Silva" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Cônjuge</nz-form-label>
+        <nz-form-control>
+          <input nz-input formControlName="conjuge" placeholder="Ex.: Ana da Silva" />
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+      <nz-form-item>
+        <nz-form-label>Família no Sistema</nz-form-label>
+        <nz-form-control>
+          <nz-select
+            formControlName="familiaId"
+            nzMode="multiple"
+            nzPlaceHolder="Digite para buscar e selecionar famílias"
+            nzShowSearch
+            class="w-full"
+          >
+            @for (family of familyOptions; track family.id) {
+              <nz-option [nzLabel]="family.nome" [nzValue]="family.id"></nz-option>
+            }
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Relação familiar</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="tipoRelacao" nzPlaceHolder="Selecione a relação" class="w-full">
+            @for (relation of relationOptions; track relation.valor) {
+              <nz-option [nzLabel]="relation.descricao" [nzValue]="relation.valor"></nz-option>
+            }
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+
+    <!-- Seção 4: Dados Eclesiásticos -->
+    <div class="border-b border-slate-100 pb-2 mb-2 pt-2">
+      <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500">4. Dados Eclesiásticos</h3>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4">
+      <nz-form-item>
+        <nz-form-label>Recebido por</nz-form-label>
+        <nz-form-control>
+          <input nz-input formControlName="recebidoPor" placeholder="Ex.: Pr. Carlos" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Data de Recebimento</nz-form-label>
+        <nz-form-control>
+          <nz-date-picker
+            formControlName="dataRecebimento"
+            nzFormat="dd/MM/yyyy"
+            nzPlaceHolder="Selecione a data"
+            [nzDisabledDate]="disableFutureDates"
+            class="w-full"
+          />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Meio de Recepção</nz-form-label>
+        <nz-form-control>
+          <input nz-input formControlName="meioRecepcao" placeholder="Ex.: Batismo, Aclamação" />
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+
+    <nz-form-item class="!mb-0 pt-4">
       <nz-form-control>
         <button
           nz-button
@@ -93,4 +202,3 @@
     </nz-form-item>
   </form>
 </section>
-

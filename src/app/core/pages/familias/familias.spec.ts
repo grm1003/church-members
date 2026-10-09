@@ -60,7 +60,7 @@ describe('Familias Component', () => {
           familiaId: 10,
           nomeMembro: 'Carlos Souza',
           emailMembro: 'carlos@souza.com',
-          tipoRelacao: 'PAI',
+          tipoRelacao: 'FILIADO',
         },
       ])
     );
